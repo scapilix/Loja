@@ -21,34 +21,47 @@ const syncProductCatalog = async (stockData: any[]) => {
       
       if (!ref || !productName) continue;
 
-      // Check if product exists by REF (primary identifier)
-      const { data: existing } = await supabase
+      // 1. Try to find by REF first
+      let { data: existing } = await supabase
         .from('loja_stock')
         .select('*')
         .eq('ref', ref)
         .single();
 
+      // 2. If not found by REF, try to find by Name (legacy items migration)
+      if (!existing) {
+        const { data: existingByName } = await supabase
+          .from('loja_stock')
+          .select('*')
+          .eq('produto_nome', productName)
+          .single();
+        
+        if (existingByName) {
+          existing = existingByName;
+        }
+      }
+
       if (existing) {
-        // Update only catalog info, never quantity
+        // Update catalog info AND set REF if it was missing
         await supabase
           .from('loja_stock')
           .update({
+            ref: ref, // Ensure REF is updated for legacy items
             produto_nome: productName,
             preco_venda: pvp || existing.preco_venda
           })
-          .eq('ref', ref);
+          .eq('id', existing.id);
       } else {
         // Create new product with quantity = 0
-        // User must manually add stock with purchase date
         await supabase
           .from('loja_stock')
           .insert([{
             ref: ref,
             produto_nome: productName,
-            quantidade_atual: 0,  // Always start at 0
+            quantidade_atual: 0,
             stock_minimo: 10,
             preco_venda: pvp,
-            data_compra: new Date().toISOString().split('T')[0]  // Default, will be updated on first purchase
+            data_compra: new Date().toISOString().split('T')[0]
           }]);
       }
     }
