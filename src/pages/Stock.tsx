@@ -486,8 +486,7 @@ export default function Stock() {
             <table className="w-full text-left">
               <thead className="bg-slate-50 dark:bg-white/5 text-[10px] font-black uppercase text-slate-400 tracking-widest">
                 <tr>
-                  <th className="px-4 py-4">REF</th>
-                  <th className="px-8 py-4">Produto</th>
+                  <th className="px-8 py-4">Produto (REF)</th>
                   <th className="px-4 py-4 text-center">Quantidade</th>
                   <th className="px-4 py-4 text-center">Data Compra</th>
                   <th className="px-4 py-4 text-center">Stock Mínimo</th>
@@ -504,15 +503,15 @@ export default function Stock() {
                   const isEditing = editingId === item.id;
                   return (
                     <tr key={item.id} className="group hover:bg-slate-50 dark:hover:bg-white/5 transition-colors">
-                      <td className="px-4 py-5">
-                        <span className="text-xs font-bold text-purple-600 dark:text-purple-400 uppercase">
-                          {item.ref || '-'}
-                        </span>
-                      </td>
                       <td className="px-8 py-5">
-                        <span className="text-sm font-black text-slate-950 dark:text-white uppercase tracking-tight">
-                          {item.produto_nome}
-                        </span>
+                        <div className="flex flex-col gap-1">
+                          <span className="text-xs font-bold text-purple-600 dark:text-purple-400 uppercase">
+                            {item.ref || 'SEM REF'}
+                          </span>
+                          <span className="text-sm font-black text-slate-950 dark:text-white uppercase tracking-tight">
+                            {item.produto_nome}
+                          </span>
+                        </div>
                       </td>
                       <td className="px-4 py-5 text-center">
                         {isEditing ? (
@@ -654,7 +653,23 @@ export default function Stock() {
                       type="text"
                       list="products-list"
                       value={formData.produto_nome} 
-                      onChange={(e) => setFormData({...formData, produto_nome: e.target.value})} 
+                      onChange={async (e) => {
+                        const selectedName = e.target.value;
+                        setFormData({...formData, produto_nome: selectedName});
+                        
+                        // Auto-fill PVP when product selected
+                        if (selectedName) {
+                          const { data: product } = await supabase
+                            .from('loja_stock')
+                            .select('preco_venda')
+                            .eq('produto_nome', selectedName)
+                            .single();
+                          
+                          if (product && product.preco_venda && !formData.preco_custo) {
+                            setFormData(prev => ({...prev, preco_custo: product.preco_venda}));
+                          }
+                        }
+                      }} 
                       placeholder="Digite a REF ou nome do produto..."
                       className="w-full px-4 py-4 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-2xl focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm font-bold"
                     />
@@ -671,7 +686,7 @@ export default function Stock() {
                       })}
                       {stockItems.map(item => (
                         <option key={item.id} value={item.produto_nome}>
-                          {item.produto_nome}
+                          {item.ref ? `${item.ref} - ${item.produto_nome}` : item.produto_nome}
                         </option>
                       ))}
                     </datalist>
