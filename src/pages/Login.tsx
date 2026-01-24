@@ -29,18 +29,18 @@ export default function Login() {
         animate={{ opacity: 1, y: 0 }}
         className="w-full max-w-md relative z-10"
       >
-        <div className="glass p-10 rounded-[3rem] border-white/10 shadow-2xl backdrop-blur-3xl">
+        <div className="bg-slate-900/60 backdrop-blur-3xl p-10 rounded-[3rem] border border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.5)]">
           <div className="flex flex-col items-center mb-10">
             <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-2xl flex items-center justify-center shadow-2xl shadow-purple-500/40 mb-6">
               <BarChart3 className="text-white w-9 h-9" />
             </div>
-            <h1 className="text-3xl font-black text-gradient tracking-tighter">Antigravity</h1>
-            <p className="text-slate-300 text-[10px] font-black uppercase tracking-[0.4em] mt-2 opacity-80">Gestão de Loja</p>
+            <h1 className="text-3xl font-black text-white tracking-tighter">Antigravity</h1>
+            <p className="text-purple-400 text-[10px] font-black uppercase tracking-[0.4em] mt-2">Gestão de Loja</p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-2">
-              <label className="text-[10px] font-black text-slate-200 uppercase tracking-widest ml-1 drop-shadow-sm">Administradora</label>
+              <label className="text-[10px] font-black text-slate-300 uppercase tracking-widest ml-1 shadow-black">Administradora</label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                   <User className="h-4 w-4 text-slate-500" />
@@ -49,13 +49,13 @@ export default function Login() {
                   type="text"
                   readOnly
                   value="Diana"
-                  className="block w-full pl-11 pr-4 py-4 bg-white/10 border border-white/20 rounded-2xl text-white font-black focus:outline-none cursor-default shadow-inner"
+                  className="block w-full pl-11 pr-4 py-4 bg-white/5 border border-white/10 rounded-2xl text-white font-black focus:outline-none cursor-default"
                 />
               </div>
             </div>
 
             <div className="space-y-2">
-              <label className="text-[10px] font-black text-slate-200 uppercase tracking-widest ml-1 drop-shadow-sm">Palavra-Passe</label>
+              <label className="text-[10px] font-black text-slate-300 uppercase tracking-widest ml-1 shadow-black">Palavra-Passe</label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                   <Lock className="h-4 w-4 text-slate-500" />
@@ -66,7 +66,7 @@ export default function Login() {
                   autoFocus
                   value={passwordInput}
                   onChange={(e) => setPasswordInput(e.target.value)}
-                  className={`block w-full pl-11 pr-4 py-4 bg-white/15 border ${error ? 'border-rose-500' : 'border-white/20'} rounded-2xl text-white font-black focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all placeholder:text-slate-400 shadow-xl`}
+                  className={`block w-full pl-11 pr-4 py-4 bg-white/5 border ${error ? 'border-rose-500' : 'border-white/10'} rounded-2xl text-white font-black focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all placeholder:text-slate-500`}
                 />
               </div>
               {error && (
@@ -89,7 +89,7 @@ export default function Login() {
             </button>
           </form>
 
-          <p className="text-center text-slate-300 text-[10px] font-bold mt-10 opacity-70">
+          <p className="text-center text-slate-400 text-[10px] font-bold mt-10">
             Acesso restrito ao painel administrativo da loja.
           </p>
         </div>
