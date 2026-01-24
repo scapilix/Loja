@@ -6,12 +6,9 @@ import {
   Search, 
   TrendingUp, 
   DollarSign, 
-  Calendar, 
-  Building2, 
   Tag, 
   CheckCircle2,
   Trash2,
-  AlertCircle,
   X
 } from 'lucide-react';
 import { KpiCard } from '../components/KpiCard';
