@@ -327,10 +327,10 @@ export default function Stock() {
     return { label: 'OK', color: 'emerald' };
   };
 
-  // Get unique product names from existing stock and orders
+  // Get unique product names from existing stock and Excel data
   const availableProducts = Array.from(new Set([
     ...stockItems.map(s => s.produto_nome),
-    ...(productsFromData || []).map((p: any) => p.nome)
+    ...(productsFromData || []).map((p: any) => p.nome_artigo || p.nome || '').filter(Boolean)
   ])).sort();
 
   return (
