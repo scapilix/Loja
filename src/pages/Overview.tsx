@@ -55,8 +55,8 @@ function Overview() {
       <div className="relative z-50 flex flex-wrap items-center justify-between gap-4 bg-white/50 dark:bg-slate-800/40 p-3 rounded-3xl border border-purple-100 dark:border-purple-800/20 backdrop-blur-xl">
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2 px-4 py-2 bg-purple-50 dark:bg-white/5 rounded-2xl">
-            <Filter className="w-4 h-4 text-purple-600 dark:text-purple-400" />
-            <span className="text-xs font-black text-purple-900 dark:text-purple-300 uppercase tracking-wider">Smart Filters</span>
+            <Filter className="w-4 h-4 text-purple-700 dark:text-purple-400" />
+            <span className="text-xs font-black text-slate-700 dark:text-slate-300 uppercase tracking-wider">Smart Filters</span>
           </div>
           
           <SmartDateFilter 
@@ -121,8 +121,8 @@ function Overview() {
         <div className="glass p-8 rounded-[2rem] border-purple-100 dark:border-purple-800/20">
           <div className="flex justify-between items-center mb-6">
             <div>
-              <h3 className="text-2xl font-black text-slate-900 dark:text-white">Top Clientes</h3>
-              <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">Clientes mais valiosos</p>
+              <h3 className="text-2xl font-black text-slate-950 dark:text-white">Top Clientes</h3>
+              <p className="text-slate-600 dark:text-slate-300 text-sm mt-1 font-bold">Clientes mais valiosos</p>
             </div>
             <Link
               to="/clientes"
@@ -147,8 +147,8 @@ function Overview() {
         <div className="glass p-8 rounded-[2rem] border-purple-100 dark:border-purple-800/20">
           <div className="flex justify-between items-center mb-6">
             <div>
-              <h3 className="text-2xl font-black text-slate-900 dark:text-white">Top Produtos</h3>
-              <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">Produtos mais vendidos</p>
+              <h3 className="text-2xl font-black text-slate-950 dark:text-white">Top Produtos</h3>
+              <p className="text-slate-600 dark:text-slate-300 text-sm mt-1 font-bold">Produtos mais vendidos</p>
             </div>
             <Link
               to="/produtos"
