@@ -101,7 +101,7 @@ export default function Portes() {
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2 px-4 py-2 bg-purple-50 dark:bg-white/5 rounded-2xl">
             <Filter className="w-4 h-4 text-purple-600 dark:text-purple-400" />
-            <span className="text-xs font-black text-purple-900 dark:text-purple-300 uppercase tracking-wider">Smart Filters</span>
+            <span className="text-xs font-black text-slate-900 dark:text-slate-100 uppercase tracking-wider">Smart Filters</span>
           </div>
           
           <SmartDateFilter 
@@ -164,7 +164,7 @@ export default function Portes() {
             </div>
             <div>
               <h3 className="text-xl font-bold text-slate-900 dark:text-white">Valor de Portes</h3>
-              <p className="text-sm text-slate-500 dark:text-slate-400">Distribuição financeira (Continental vs Ilhas)</p>
+              <p className="text-sm text-slate-800 dark:text-slate-200 font-black">Distribuição financeira (Continental vs Ilhas)</p>
             </div>
           </div>
           
@@ -200,7 +200,7 @@ export default function Portes() {
             </div>
             <div>
               <h3 className="text-xl font-bold text-slate-900 dark:text-white">Volume de Envios</h3>
-              <p className="text-sm text-slate-500 dark:text-slate-400">Quantidade de envios (Continental vs Ilhas)</p>
+              <p className="text-sm text-slate-800 dark:text-slate-200 font-black">Quantidade de envios (Continental vs Ilhas)</p>
             </div>
           </div>
           
@@ -237,7 +237,7 @@ export default function Portes() {
           </div>
           <div>
             <h3 className="text-xl font-bold text-slate-900 dark:text-white">Evolução Mensal</h3>
-            <p className="text-sm text-slate-500 dark:text-slate-400">Gastos com portes ao longo do tempo (Clique para detalhes)</p>
+            <p className="text-sm text-slate-800 dark:text-slate-200 font-black">Gastos com portes ao longo do tempo (Clique para detalhes)</p>
           </div>
         </div>
         
@@ -317,7 +317,7 @@ export default function Portes() {
                             </div>
                             <div>
                                 <h3 className="text-xl font-black text-slate-900 dark:text-white">Envios em {selectedMonth}</h3>
-                                <p className="text-sm text-slate-500">Detalhes dos portes cobrados</p>
+                                <p className="text-sm text-slate-800 dark:text-slate-200 font-black">Detalhes dos portes cobrados</p>
                             </div>
                         </div>
                         <button onClick={() => setSelectedMonth(null)} className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors">

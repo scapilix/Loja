@@ -13,7 +13,8 @@ import {
   Database,
   LogOut,
   ShieldCheck,
-  KeyRound
+  KeyRound,
+  FileText
 } from 'lucide-react';
 import { ThemeToggle } from '../ThemeToggle';
 import { ExcelImport } from '../ExcelImport';
@@ -27,6 +28,7 @@ const navigation = [
   { id: 'produtos', label: 'Produtos', icon: Package, path: '/produtos' },
   { id: 'rankings', label: 'Rankings', icon: Trophy, path: '/rankings' },
   { id: 'portes', label: 'Portes', icon: Truck, path: '/portes' },
+  { id: 'faturas', label: 'Faturas', icon: FileText, path: '/faturas' },
 ];
 
 function AppLayout() {
@@ -45,9 +47,10 @@ function AppLayout() {
   const [passSuccess, setPassSuccess] = useState(false);
   const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false);
 
-  const handlePassChange = (e: React.FormEvent) => {
+  const handlePassChange = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (changePassword(oldPass, newPass)) {
+    const success = await changePassword(oldPass, newPass);
+    if (success) {
       setPassSuccess(true);
       setTimeout(() => {
         setIsPassModalOpen(false);
@@ -101,8 +104,7 @@ function AppLayout() {
           </div>
           {!isSidebarCollapsed && (
             <div className="flex flex-col overflow-hidden whitespace-nowrap">
-              <span className="font-black text-2xl tracking-tighter text-gradient leading-none">Antigravity</span>
-              <span className="text-[10px] font-black uppercase tracking-[0.3em] text-purple-600 dark:text-purple-400 mt-2 drop-shadow-sm">Gestão de Loja</span>
+              <span className="font-black text-2xl tracking-tighter text-gradient leading-none">Gestão de Loja</span>
             </div>
           )}
         </div>
@@ -168,10 +170,7 @@ function AppLayout() {
         transition={{ type: "spring", damping: 20 }}
         className="lg:hidden fixed left-0 top-0 bottom-0 w-72 bg-white dark:bg-slate-900 z-50 flex flex-col shadow-2xl"
       >
-          <div className="p-6 flex flex-col gap-1 border-b border-purple-100 dark:border-white/10">
-            <span className="font-black text-2xl text-gradient">Antigravity</span>
-            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-purple-600">Gestão de Loja</span>
-          </div>
+            <span className="font-black text-2xl text-gradient">Gestão de Loja</span>
           <nav className="flex-1 px-4 space-y-2 mt-4">
           {navigation.map((item) => (
             <NavLink

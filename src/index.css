@@ -78,11 +78,11 @@ h1, h2, h3, h4, .font-heading {
 
 /* Glassmorphism Reimagined */
 .glass {
-  @apply bg-white/80 backdrop-blur-2xl border border-slate-200/80 shadow-xl;
+  @apply bg-white/95 backdrop-blur-2xl border border-slate-300 shadow-xl;
 }
  
 .dark .glass {
-  @apply bg-slate-900/40 backdrop-blur-2xl border border-white/10 shadow-2xl;
+  @apply bg-slate-900/60 backdrop-blur-2xl border border-white/20 shadow-2xl;
 }
 
 .glass-active {

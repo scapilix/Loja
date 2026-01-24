@@ -56,7 +56,7 @@ export default function BaseClientes() {
           <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">
             Base de Clientes
           </h1>
-          <p className="text-slate-500 dark:text-slate-400 mt-2 text-sm">
+          <p className="text-slate-900 dark:text-slate-100 mt-2 text-sm font-black">
             Gestão completa de base de dados ({allCustomers.length} clientes)
           </p>
         </div>
@@ -77,9 +77,9 @@ export default function BaseClientes() {
 
       {/* Filter Bar */}
       <div className="relative z-40 flex flex-wrap items-center gap-4 bg-white/50 dark:bg-slate-800/40 p-2 rounded-2xl border border-purple-100 dark:border-purple-800/20 backdrop-blur-xl">
-        <div className="flex items-center gap-2 px-3 py-1.5 bg-purple-50 dark:bg-white/5 rounded-xl">
-          <Filter className="w-3 h-3 text-purple-600 dark:text-purple-400" />
-          <span className="text-[10px] font-black text-purple-900 dark:text-purple-300 uppercase tracking-wider">Filtros</span>
+        <div className="flex items-center gap-2 px-3 py-1.5 bg-purple-100 dark:bg-white/10 rounded-xl border border-purple-200 dark:border-white/5">
+          <Filter className="w-3 h-3 text-purple-800 dark:text-purple-300" />
+          <span className="text-[10px] font-black text-purple-950 dark:text-purple-100 uppercase tracking-wider">Filtros</span>
         </div>
         
         <div className="scale-90 origin-left">
@@ -106,7 +106,7 @@ export default function BaseClientes() {
       <div className="glass overflow-hidden rounded-2xl border-purple-100 dark:border-purple-800/20">
         <div className="overflow-x-auto max-h-[600px] overflow-y-auto custom-scrollbar">
           <table className="min-w-full text-left text-xs whitespace-nowrap">
-            <thead className="sticky top-0 z-10 uppercase tracking-wider border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-500 dark:text-slate-400 font-bold shadow-sm">
+            <thead className="sticky top-0 z-10 uppercase tracking-wider border-b border-slate-300 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 font-black shadow-sm">
               <tr>
                 <th scope="col" className="px-4 py-3">Cliente</th>
                 <th scope="col" className="px-4 py-3">Instagram</th>
@@ -142,30 +142,30 @@ export default function BaseClientes() {
                     </div>
                   </td>
                   <td className="px-4 py-2">
-                    <div className="flex items-center gap-1.5 text-slate-600 dark:text-slate-300 font-medium">
+                    <div className="flex items-center gap-1.5 text-slate-900 dark:text-slate-100 font-black">
                         {customer.instagram !== 'N/A' ? (
                             <>
-                                <Instagram className="w-3 h-3 text-pink-500" />
+                                <Instagram className="w-3 h-3 text-pink-600 dark:text-pink-400" />
                                 <span className="truncate max-w-[120px]">{customer.instagram}</span>
                             </>
                         ) : (
-                            <span className="text-slate-400 text-[10px] italic">--</span>
+                            <span className="text-slate-400 dark:text-slate-500 text-[10px] italic font-medium">--</span>
                         )}
                     </div>
                   </td>
                   <td className="px-4 py-2">
-                    <div className="flex items-center gap-1.5 text-slate-600 dark:text-slate-300 max-w-[200px] truncate" title={customer.address}>
-                        <MapPin className="w-3 h-3 text-indigo-500 flex-shrink-0" />
+                    <div className="flex items-center gap-1.5 text-slate-950 dark:text-white font-black max-w-[200px] truncate" title={customer.address}>
+                        <MapPin className="w-3 h-3 text-indigo-600 dark:text-indigo-400 flex-shrink-0" />
                         <span>{customer.address}</span>
                     </div>
                   </td>
                   <td className="px-4 py-2">
                      <div className="flex flex-col gap-0.5">
-                        <div className="flex items-center gap-1.5 text-slate-500 dark:text-slate-400" title={customer.email}>
+                        <div className="flex items-center gap-1.5 text-slate-800 dark:text-slate-200 font-bold" title={customer.email}>
                            <Mail className="w-3 h-3 flex-shrink-0" />
                            <span className="truncate max-w-[150px]">{customer.email}</span>
                         </div>
-                        <div className="flex items-center gap-1.5 text-slate-500 dark:text-slate-400">
+                        <div className="flex items-center gap-1.5 text-slate-800 dark:text-slate-200 font-bold">
                            <Phone className="w-3 h-3 flex-shrink-0" />
                            <span>{customer.phone}</span>
                         </div>
@@ -225,7 +225,7 @@ export default function BaseClientes() {
                         <div className="flex justify-between items-start mb-6">
                             <div>
                                 <h2 className="text-2xl font-black text-slate-900 dark:text-white">{selectedCustomer.name}</h2>
-                                <p className="text-slate-500 text-sm">Histórico de Relacionamento</p>
+                                <p className="text-slate-800 dark:text-slate-200 text-sm font-black">Histórico de Relacionamento</p>
                             </div>
                             <button 
                                 onClick={() => setSelectedCustomer(null)}
@@ -237,12 +237,12 @@ export default function BaseClientes() {
 
                         {/* Stats */}
                         <div className="grid grid-cols-2 gap-4 mb-8">
-                            <div className="p-4 bg-purple-50 dark:bg-purple-900/10 rounded-2xl border border-purple-100 dark:border-purple-800/20">
-                                <div className="text-purple-600 dark:text-purple-400 font-bold text-xs uppercase mb-1">Total Gasto</div>
+                            <div className="p-4 bg-purple-100 dark:bg-purple-900/40 rounded-2xl border border-purple-200 dark:border-purple-800/20">
+                                <div className="text-purple-800 dark:text-purple-300 font-black text-xs uppercase mb-1">Total Gasto</div>
                                 <div className="text-2xl font-black text-slate-900 dark:text-white">{formatCurrency(selectedCustomer.revenue)}</div>
                             </div>
-                            <div className="p-4 bg-blue-50 dark:bg-blue-900/10 rounded-2xl border border-blue-100 dark:border-blue-800/20">
-                                <div className="text-blue-600 dark:text-blue-400 font-bold text-xs uppercase mb-1">Compras</div>
+                            <div className="p-4 bg-blue-100 dark:bg-blue-900/40 rounded-2xl border border-blue-200 dark:border-blue-800/20">
+                                <div className="text-blue-800 dark:text-blue-300 font-black text-xs uppercase mb-1">Compras</div>
                                 <div className="text-2xl font-black text-slate-900 dark:text-white">{selectedCustomer.orders}</div>
                             </div>
                         </div>
@@ -271,7 +271,7 @@ export default function BaseClientes() {
                                                     </span>
                                                 </div>
                                                 
-                                                <div className="text-xs text-slate-500 mb-2 font-mono">
+                                                <div className="text-xs text-slate-800 dark:text-slate-300 mb-2 font-mono font-bold">
                                                     {order.id_venda || '#N/A'} • {order.forma_de_pagamento}
                                                 </div>
 

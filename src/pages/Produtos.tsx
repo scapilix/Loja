@@ -69,7 +69,7 @@ function Produtos() {
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2 px-4 py-2 bg-purple-50 dark:bg-white/5 rounded-2xl">
             <Filter className="w-4 h-4 text-purple-600 dark:text-purple-400" />
-            <span className="text-xs font-black text-purple-900 dark:text-purple-300 uppercase tracking-wider">Smart Filters</span>
+            <span className="text-xs font-black text-slate-800 dark:text-slate-200 uppercase tracking-wider">Smart Filters</span>
           </div>
           
           <SmartDateFilter 
@@ -127,7 +127,7 @@ function Produtos() {
       <div className="glass p-10 rounded-[2rem] border-purple-100 dark:border-purple-800/20">
         <div className="mb-8">
           <h3 className="text-2xl font-black text-slate-900 dark:text-white">Performance dos Produtos</h3>
-          <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">Análise de quantidade vendida vs faturamento</p>
+          <p className="text-slate-800 dark:text-slate-200 text-sm mt-1 font-black">Análise de quantidade vendida vs faturamento</p>
         </div>
 
         <div className="overflow-x-auto">
@@ -176,7 +176,7 @@ function Produtos() {
                             style={{ width: `${Math.min(performanceScore, 100)}%` }}
                           />
                         </div>
-                        <span className="text-xs font-bold text-slate-600 dark:text-slate-400 w-10 text-right">
+                        <span className="text-xs font-black text-slate-800 dark:text-slate-200 w-10 text-right">
                           {performanceScore.toFixed(0)}%
                         </span>
                       </div>
@@ -193,7 +193,7 @@ function Produtos() {
       <div className="glass p-10 rounded-[2rem] border-purple-100 dark:border-purple-800/20">
         <div className="mb-8">
           <h3 className="text-2xl font-black text-slate-900 dark:text-white">Top Produtos</h3>
-          <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">Produtos mais vendidos por quantidade</p>
+          <p className="text-slate-800 dark:text-slate-200 text-sm mt-1 font-black">Produtos mais vendidos por quantidade</p>
         </div>
         <TopProdutos products={topProducts} />
       </div>

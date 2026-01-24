@@ -6,6 +6,7 @@ import BaseClientes from '../pages/BaseClientes';
 import Produtos from '../pages/Produtos';
 import Rankings from '../pages/Rankings';
 import Portes from '../pages/Portes';
+import Faturas from '../pages/Faturas';
 import Login from '../pages/Login';
 import { FilterProvider } from '../contexts/FilterContext';
 import { DataProvider } from '../contexts/DataContext';
@@ -40,6 +41,7 @@ function AppRoutes() {
                 <Route path="produtos" element={<Produtos />} />
                 <Route path="rankings" element={<Rankings />} />
                 <Route path="portes" element={<Portes />} />
+                <Route path="faturas" element={<Faturas />} />
                 <Route path="*" element={<Navigate to="/" replace />} />
               </Route>
             </Routes>

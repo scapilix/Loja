@@ -74,7 +74,7 @@ function Clientes() {
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2 px-4 py-2 bg-purple-50 dark:bg-white/5 rounded-2xl">
             <Filter className="w-4 h-4 text-purple-600 dark:text-purple-400" />
-            <span className="text-xs font-black text-purple-900 dark:text-purple-300 uppercase tracking-wider">Smart Filters</span>
+            <span className="text-xs font-black text-slate-800 dark:text-slate-200 uppercase tracking-wider">Smart Filters</span>
           </div>
           
           <SmartDateFilter 
@@ -132,7 +132,7 @@ function Clientes() {
       <div className="glass p-10 rounded-[2rem] border-purple-100 dark:border-purple-800/20">
         <div className="mb-8">
           <h3 className="text-2xl font-black text-slate-900 dark:text-white">Segmentação de Clientes</h3>
-          <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">Distribuição por frequência de compra</p>
+          <p className="text-slate-800 dark:text-slate-200 text-sm mt-1 font-black">Distribuição por frequência de compra</p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -146,7 +146,7 @@ function Clientes() {
               }`}>
                 <div className="text-center">
                   <div className="text-4xl font-black font-mono mb-2">{segment.value}</div>
-                  <div className="text-sm font-bold text-slate-600 dark:text-slate-400 mb-1">{segment.name}</div>
+                  <div className="text-sm font-black text-slate-900 dark:text-slate-100 mb-1">{segment.name}</div>
                   <div className="text-xs font-semibold text-slate-500 dark:text-slate-500">{segment.percentage.toFixed(1)}%</div>
                 </div>
                 <div className="mt-4 h-2 bg-white dark:bg-slate-900/50 rounded-full overflow-hidden">
@@ -170,7 +170,7 @@ function Clientes() {
       <div className="glass p-10 rounded-[2rem] border-purple-100 dark:border-purple-800/20">
         <div className="mb-8">
           <h3 className="text-2xl font-black text-slate-900 dark:text-white">Top Clientes</h3>
-          <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">Clientes mais valiosos por número de compras</p>
+          <p className="text-slate-800 dark:text-slate-200 text-sm mt-1 font-black">Clientes mais valiosos por número de compras</p>
         </div>
         <TopClientes customers={topCustomers} />
       </div>

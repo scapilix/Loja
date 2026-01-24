@@ -60,9 +60,9 @@ function Rankings() {
       {/* Filter Bar */}
       <div className="relative z-50 flex flex-wrap items-center justify-between gap-4 bg-white/50 dark:bg-slate-800/40 p-3 rounded-3xl border border-purple-100 dark:border-purple-800/20 backdrop-blur-xl">
         <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2 px-4 py-2 bg-purple-50 dark:bg-white/5 rounded-2xl">
-            <Filter className="w-4 h-4 text-purple-600 dark:text-purple-400" />
-            <span className="text-xs font-black text-purple-900 dark:text-purple-300 uppercase tracking-wider">Smart Filters</span>
+          <div className="flex items-center gap-2 px-4 py-2 bg-purple-100 dark:bg-white/10 rounded-2xl border border-purple-200 dark:border-white/5">
+            <Filter className="w-4 h-4 text-purple-800 dark:text-purple-300" />
+            <span className="text-xs font-black text-slate-900 dark:text-slate-100 uppercase tracking-wider">Smart Filters</span>
           </div>
           
           <SmartDateFilter 
@@ -91,8 +91,8 @@ function Rankings() {
             <Trophy className="w-6 h-6 text-amber-600 dark:text-amber-400" />
           </div>
           <div>
-            <h2 className="text-3xl font-black text-slate-900 dark:text-white">Rankings</h2>
-            <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">Melhores clientes e produtos em destaque</p>
+            <h2 className="text-3xl font-black text-slate-950 dark:text-white">Rankings</h2>
+            <p className="text-slate-900 dark:text-slate-100 text-sm mt-1 font-black italic tracking-tight">Melhores clientes e produtos em destaque</p>
           </div>
         </div>
       </div>
@@ -140,10 +140,10 @@ function Rankings() {
                         <p className="text-xs text-purple-500 font-medium truncate">@{customer.instagram.replace('@', '')}</p>
                     )}
                     <div className="flex items-center gap-4 mt-1">
-                      <span className="text-sm text-slate-600 dark:text-slate-400">
-                        <span className="font-semibold">{customer.orders}</span> compras
+                      <span className="text-sm text-slate-950 dark:text-white font-black">
+                        <span className="font-black text-purple-700 dark:text-purple-400">{customer.orders}</span> compras
                       </span>
-                      <span className="text-sm font-mono font-bold text-emerald-600 dark:text-emerald-400">
+                      <span className="text-sm font-mono font-black text-emerald-700 dark:text-emerald-400">
                         {formatCurrency(customer.revenue)}
                       </span>
                     </div>
@@ -218,10 +218,10 @@ function Rankings() {
                     <div className="flex-1 min-w-0">
                       <h4 className="font-bold text-lg text-slate-900 dark:text-white truncate">{product.ref}</h4>
                       <div className="flex items-center gap-4 mt-1">
-                        <span className="text-sm text-slate-600 dark:text-slate-400">
-                          <span className="font-semibold">{product.quantity}</span> unidades
+                        <span className="text-sm text-slate-950 dark:text-white font-black">
+                          <span className="font-black text-emerald-700 dark:text-emerald-400">{product.quantity}</span> unidades
                         </span>
-                        <span className="text-sm font-mono font-bold text-emerald-600 dark:text-emerald-400">
+                        <span className="text-sm font-mono font-black text-emerald-700 dark:text-emerald-400">
                           {formatCurrency(product.revenue)}
                         </span>
                       </div>
@@ -229,10 +229,10 @@ function Rankings() {
 
                     {/* Average Price */}
                     <div className="flex-shrink-0 text-right">
-                      <div className="text-2xl font-black font-mono text-emerald-600 dark:text-emerald-400">
+                      <div className="text-2xl font-black font-mono text-emerald-700 dark:text-emerald-400">
                         {formatCurrency(product.avgPrice)}
                       </div>
-                      <div className="text-xs text-slate-500 dark:text-slate-500">preço médio</div>
+                      <div className="text-[10px] font-black text-slate-500 uppercase tracking-widest">preço médio</div>
                     </div>
                   </div>
 
@@ -281,7 +281,7 @@ function Rankings() {
                         <div className="flex justify-between items-start mb-6">
                             <div>
                                 <h2 className="text-2xl font-black text-slate-900 dark:text-white">{selectedCustomer}</h2>
-                                <p className="text-slate-500 text-sm">Histórico de Relacionamento</p>
+                                <p className="text-slate-800 dark:text-slate-200 text-sm font-black">Histórico de Relacionamento</p>
                             </div>
                             <button 
                                 onClick={() => setSelectedCustomer(null)}
@@ -327,7 +327,7 @@ function Rankings() {
                                                     </span>
                                                 </div>
                                                 
-                                                <div className="text-xs text-slate-500 mb-2 font-mono">
+                                                <div className="text-xs text-slate-800 dark:text-slate-300 mb-2 font-mono font-bold">
                                                     {order.id_venda || '#N/A'} • {order.forma_de_pagamento}
                                                 </div>
 

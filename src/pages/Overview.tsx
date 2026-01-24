@@ -56,7 +56,7 @@ function Overview() {
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2 px-4 py-2 bg-purple-50 dark:bg-white/5 rounded-2xl">
             <Filter className="w-4 h-4 text-purple-700 dark:text-purple-400" />
-            <span className="text-xs font-black text-slate-700 dark:text-slate-300 uppercase tracking-wider">Smart Filters</span>
+            <span className="text-xs font-black text-slate-800 dark:text-slate-200 uppercase tracking-wider">Smart Filters</span>
           </div>
           
           <SmartDateFilter 
@@ -122,7 +122,7 @@ function Overview() {
           <div className="flex justify-between items-center mb-6">
             <div>
               <h3 className="text-2xl font-black text-slate-950 dark:text-white">Top Clientes</h3>
-              <p className="text-slate-600 dark:text-slate-300 text-sm mt-1 font-bold">Clientes mais valiosos</p>
+              <p className="text-slate-700 dark:text-slate-200 text-sm mt-1 font-black">Clientes mais valiosos</p>
             </div>
             <Link
               to="/clientes"
@@ -148,7 +148,7 @@ function Overview() {
           <div className="flex justify-between items-center mb-6">
             <div>
               <h3 className="text-2xl font-black text-slate-950 dark:text-white">Top Produtos</h3>
-              <p className="text-slate-600 dark:text-slate-300 text-sm mt-1 font-bold">Produtos mais vendidos</p>
+              <p className="text-slate-700 dark:text-slate-200 text-sm mt-1 font-black">Produtos mais vendidos</p>
             </div>
             <Link
               to="/produtos"
@@ -187,7 +187,7 @@ function Overview() {
             </div>
             <h3 className="text-xl font-bold text-slate-900 dark:text-white">Análise de Clientes</h3>
           </div>
-          <p className="text-slate-600 dark:text-slate-400 text-sm mb-4">Explore segmentação, comportamento e valor de vida dos clientes</p>
+          <p className="text-slate-800 dark:text-slate-300 text-sm mb-4 font-bold">Explore segmentação, comportamento e valor de vida dos clientes</p>
           <div className="flex items-center text-purple-600 dark:text-purple-400 font-semibold text-sm group-hover:translate-x-2 transition-transform">
             Explorar <ChevronRight className="w-4 h-4 ml-1" />
           </div>
@@ -200,7 +200,7 @@ function Overview() {
             </div>
             <h3 className="text-xl font-bold text-slate-900 dark:text-white">Análise de Produtos</h3>
           </div>
-          <p className="text-slate-600 dark:text-slate-400 text-sm mb-4">Veja performance, inventário e tendências de produtos</p>
+          <p className="text-slate-800 dark:text-slate-300 text-sm mb-4 font-bold">Veja performance, inventário e tendências de produtos</p>
           <div className="flex items-center text-emerald-600 dark:text-emerald-400 font-semibold text-sm group-hover:translate-x-2 transition-transform">
             Explorar <ChevronRight className="w-4 h-4 ml-1" />
           </div>
@@ -213,7 +213,7 @@ function Overview() {
             </div>
             <h3 className="text-xl font-bold text-slate-900 dark:text-white">Rankings</h3>
           </div>
-          <p className="text-slate-600 dark:text-slate-400 text-sm mb-4">Veja os melhores clientes e produtos em destaque</p>
+          <p className="text-slate-800 dark:text-slate-300 text-sm mb-4 font-bold">Veja os melhores clientes e produtos em destaque</p>
           <div className="flex items-center text-amber-600 dark:text-amber-400 font-semibold text-sm group-hover:translate-x-2 transition-transform">
             Explorar <ChevronRight className="w-4 h-4 ml-1" />
           </div>

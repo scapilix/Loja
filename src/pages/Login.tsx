@@ -6,11 +6,12 @@ import { Lock, User, BarChart3, AlertCircle } from 'lucide-react';
 export default function Login() {
   const [passwordInput, setPasswordInput] = useState('');
   const [error, setError] = useState(false);
-  const { login } = useAuth();
+  const { login, isSyncing } = useAuth();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (login(passwordInput)) {
+    const success = await login(passwordInput);
+    if (success) {
       window.location.hash = '#/'; // Go to dashboard
     } else {
       setError(true);
@@ -35,8 +36,8 @@ export default function Login() {
             <div className="w-20 h-20 bg-gradient-to-br from-purple-500 via-purple-600 to-indigo-700 rounded-3xl flex items-center justify-center shadow-2xl shadow-purple-500/40 mb-6 border border-white/10">
               <BarChart3 className="text-white w-10 h-10" />
             </div>
-            <h1 className="text-4xl font-black text-white tracking-tighter">Antigravity</h1>
-            <p className="text-purple-400 text-xs font-black uppercase tracking-[0.5em] mt-3">Gestão de Loja</p>
+            <h1 className="text-4xl font-black text-white tracking-tighter text-center leading-none">Gestão de Loja</h1>
+            <p className="text-purple-400 text-[10px] font-black uppercase tracking-[0.5em] mt-4">Painel Administrativo</p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6">
@@ -84,9 +85,10 @@ export default function Login() {
 
             <button
               type="submit"
-              className="w-full py-4 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-2xl font-black uppercase tracking-[0.2em] shadow-xl shadow-purple-500/20 hover:scale-[1.02] active:scale-[0.98] transition-all mt-4"
+              disabled={isSyncing}
+              className={`w-full py-4 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-2xl font-black uppercase tracking-[0.2em] shadow-xl shadow-purple-500/20 hover:scale-[1.02] active:scale-[0.98] transition-all mt-4 ${isSyncing ? 'opacity-50 cursor-not-allowed' : ''}`}
             >
-              Entrar no sistema
+              {isSyncing ? 'A sincronizar...' : 'Entrar no sistema'}
             </button>
           </form>
 
