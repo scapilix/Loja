@@ -102,7 +102,7 @@ function AppLayout() {
           {!isSidebarCollapsed && (
             <div className="flex flex-col overflow-hidden whitespace-nowrap">
               <span className="font-black text-xl tracking-tighter text-gradient leading-none">Antigravity</span>
-              <span className="text-[9px] font-black uppercase tracking-[0.3em] text-purple-500/60 dark:text-purple-400/40 mt-1">Enterprise</span>
+              <span className="text-[9px] font-black uppercase tracking-[0.3em] text-purple-600 dark:text-purple-400 mt-1.5 drop-shadow-sm">Gestão de Loja</span>
             </div>
           )}
         </div>
@@ -169,9 +169,9 @@ function AppLayout() {
         className="lg:hidden fixed left-0 top-0 bottom-0 w-72 bg-white dark:bg-slate-900 z-50 flex flex-col shadow-2xl"
       >
          {/* Mobile content same as before */}
-         <div className="p-6 flex items-center gap-4 border-b border-purple-100 dark:border-white/10">
-            <span className="font-black text-xl">Antigravity</span>
-         </div>
+          <div className="p-6 flex items-center gap-4 border-b border-purple-100 dark:border-white/10">
+            <span className="font-black text-xl text-gradient">Gestão de Loja</span>
+          </div>
           <nav className="flex-1 px-4 space-y-2 mt-4">
           {navigation.map((item) => (
             <NavLink

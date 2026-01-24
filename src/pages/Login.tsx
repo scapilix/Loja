@@ -35,12 +35,12 @@ export default function Login() {
               <BarChart3 className="text-white w-9 h-9" />
             </div>
             <h1 className="text-3xl font-black text-gradient tracking-tighter">Antigravity</h1>
-            <p className="text-slate-500 text-xs font-black uppercase tracking-[0.4em] mt-1">Enterprise Login</p>
+            <p className="text-slate-300 text-[10px] font-black uppercase tracking-[0.4em] mt-2 opacity-80">Gestão de Loja</p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-2">
-              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Administradora</label>
+              <label className="text-[10px] font-black text-slate-200 uppercase tracking-widest ml-1 drop-shadow-sm">Administradora</label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                   <User className="h-4 w-4 text-slate-500" />
@@ -49,13 +49,13 @@ export default function Login() {
                   type="text"
                   readOnly
                   value="Diana"
-                  className="block w-full pl-11 pr-4 py-4 bg-white/5 border border-white/10 rounded-2xl text-white font-bold focus:outline-none cursor-default"
+                  className="block w-full pl-11 pr-4 py-4 bg-white/10 border border-white/20 rounded-2xl text-white font-black focus:outline-none cursor-default shadow-inner"
                 />
               </div>
             </div>
 
             <div className="space-y-2">
-              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Palavra-Passe</label>
+              <label className="text-[10px] font-black text-slate-200 uppercase tracking-widest ml-1 drop-shadow-sm">Palavra-Passe</label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                   <Lock className="h-4 w-4 text-slate-500" />
@@ -66,7 +66,7 @@ export default function Login() {
                   autoFocus
                   value={passwordInput}
                   onChange={(e) => setPasswordInput(e.target.value)}
-                  className={`block w-full pl-11 pr-4 py-4 bg-white/5 border ${error ? 'border-rose-500' : 'border-white/10'} rounded-2xl text-white font-bold focus:outline-none focus:ring-2 focus:ring-purple-500/50 transition-all placeholder:text-slate-600`}
+                  className={`block w-full pl-11 pr-4 py-4 bg-white/15 border ${error ? 'border-rose-500' : 'border-white/20'} rounded-2xl text-white font-black focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all placeholder:text-slate-400 shadow-xl`}
                 />
               </div>
               {error && (
@@ -89,7 +89,7 @@ export default function Login() {
             </button>
           </form>
 
-          <p className="text-center text-slate-600 text-[10px] font-medium mt-10">
+          <p className="text-center text-slate-300 text-[10px] font-bold mt-10 opacity-70">
             Acesso restrito ao painel administrativo da loja.
           </p>
         </div>
