@@ -168,9 +168,9 @@ function AppLayout() {
         transition={{ type: "spring", damping: 20 }}
         className="lg:hidden fixed left-0 top-0 bottom-0 w-72 bg-white dark:bg-slate-900 z-50 flex flex-col shadow-2xl"
       >
-         {/* Mobile content same as before */}
-          <div className="p-6 flex items-center gap-4 border-b border-purple-100 dark:border-white/10">
-            <span className="font-black text-xl text-gradient">Gestão de Loja</span>
+          <div className="p-6 flex flex-col gap-1 border-b border-purple-100 dark:border-white/10">
+            <span className="font-black text-2xl text-gradient">Antigravity</span>
+            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-purple-600">Gestão de Loja</span>
           </div>
           <nav className="flex-1 px-4 space-y-2 mt-4">
           {navigation.map((item) => (
