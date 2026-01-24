@@ -20,26 +20,23 @@ const DataContext = createContext<DataContextType | undefined>(undefined);
 const STORAGE_KEY = 'antigravity_data_v1';
 
 export function DataProvider({ children, initialData }: { children: ReactNode; initialData: ExcelData }) {
-  // Initialize state from localStorage if available, otherwise use initialData
-  const [data, setData] = useState<ExcelData>(() => {
-    try {
-      const savedData = localStorage.getItem(STORAGE_KEY);
-      return savedData ? JSON.parse(savedData) : initialData;
-    } catch (error) {
-      console.warn('Failed to load data from localStorage:', error);
-      return initialData;
-    }
-  });
+  // Always start with initialData from the JSON file to ensure fresh data after a push
+  // Still keep a way to manually update via context
+  const [data, setData] = useState<ExcelData>(initialData);
   
   const [isLoading, setIsLoading] = useState(false);
 
-  // Save to localStorage whenever data changes
+  // Sync state with initialData if it changes (e.g. after a rebuild)
+  useEffect(() => {
+    setData(initialData);
+  }, [initialData]);
+  
+  // Optional: Save to localStorage as a secondary backup only
   useEffect(() => {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
     } catch (error) {
-      console.error('Failed to save data to localStorage (likely quota exceeded):', error);
-      // Optional: Add UI notification here if save fails
+      console.error('Failed to save data to localStorage:', error);
     }
   }, [data]);
 

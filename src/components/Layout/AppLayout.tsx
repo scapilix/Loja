@@ -111,24 +111,11 @@ function AppLayout() {
           ))}
         </nav>
 
-        <div className={`p-4 mt-auto ${isSidebarCollapsed ? 'items-center flex flex-col' : ''}`}>
-          {!isSidebarCollapsed ? (
-            <div className="glass p-4 rounded-2xl border-white/20 dark:border-white/5 space-y-3">
-               <div className="flex items-center gap-2">
-                <div className="w-6 h-6 rounded bg-emerald-500/20 flex items-center justify-center">
-                  <TrendingUp className="w-3 h-3 text-emerald-500" />
-                </div>
-                <span className="text-[10px] font-bold text-slate-400">Status</span>
-              </div>
-              <div className="h-1 w-full bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden">
-                <div className="h-full w-[92%] bg-emerald-500 rounded-full" />
-              </div>
-            </div>
-          ) : (
-             <div className="w-8 h-8 rounded-full bg-emerald-500/20 flex items-center justify-center" title="92% Operational">
-                <TrendingUp className="w-4 h-4 text-emerald-500" />
-             </div>
-          )}
+        <div className={`p-4 mt-auto border-t border-purple-100/50 dark:border-white/5 ${isSidebarCollapsed ? 'px-2' : 'px-4'}`}>
+          <ExcelImport 
+            onDataImported={handleDataImport} 
+            variant={isSidebarCollapsed ? 'sidebar-collapsed' : 'sidebar'} 
+          />
         </div>
       </motion.aside>
 
@@ -219,7 +206,7 @@ function AppLayout() {
         </div>
       </main>
 
-      <ExcelImport onDataImported={handleDataImport} />
+
     </div>
   );
 }

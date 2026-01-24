@@ -5,9 +5,10 @@ import * as XLSX from 'xlsx';
 
 interface ExcelImportProps {
   onDataImported: (data: { orders: any[]; customers: any[] }) => void;
+  variant?: 'floating' | 'sidebar' | 'sidebar-collapsed';
 }
 
-export function ExcelImport({ onDataImported }: ExcelImportProps) {
+export function ExcelImport({ onDataImported, variant = 'floating' }: ExcelImportProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [status, setStatus] = useState<'idle' | 'success' | 'error'>('idle');
@@ -132,9 +133,36 @@ export function ExcelImport({ onDataImported }: ExcelImportProps) {
     }
   };
 
-  return (
-    <>
-      {/* Floating Import Button */}
+  const renderTrigger = () => {
+    if (variant === 'sidebar-collapsed') {
+      return (
+        <motion.button
+          onClick={() => setIsOpen(true)}
+          className="w-10 h-10 bg-purple-500/10 hover:bg-purple-500/20 text-purple-600 dark:text-purple-400 rounded-xl flex items-center justify-center transition-all border border-purple-500/20"
+          whileHover={{ scale: 1.1 }}
+          whileTap={{ scale: 0.95 }}
+          title="Importar Excel"
+        >
+          <Upload className="w-5 h-5" />
+        </motion.button>
+      );
+    }
+
+    if (variant === 'sidebar') {
+      return (
+        <motion.button
+          onClick={() => setIsOpen(true)}
+          className="w-full h-12 bg-purple-600 hover:bg-purple-700 text-white rounded-xl flex items-center justify-center gap-3 transition-all shadow-lg shadow-purple-500/20"
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
+        >
+          <Upload className="w-4 h-4" />
+          <span className="text-sm font-black uppercase tracking-wider">Importar Dados</span>
+        </motion.button>
+      );
+    }
+
+    return (
       <motion.button
         onClick={() => setIsOpen(true)}
         className="fixed bottom-8 right-8 z-50 w-16 h-16 bg-gradient-to-br from-purple-600 to-indigo-600 rounded-2xl shadow-2xl shadow-purple-500/50 flex items-center justify-center text-white hover:scale-110 transition-transform duration-300 group"
@@ -143,6 +171,12 @@ export function ExcelImport({ onDataImported }: ExcelImportProps) {
       >
         <Upload className="w-7 h-7 group-hover:animate-bounce" />
       </motion.button>
+    );
+  };
+
+  return (
+    <>
+      {renderTrigger()}
 
       {/* Import Modal */}
       <AnimatePresence>
