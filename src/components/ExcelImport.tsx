@@ -2,11 +2,58 @@ import { useState, useRef } from 'react';
 import { Upload, X, CheckCircle, AlertCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import * as XLSX from 'xlsx';
+import { supabase } from '../lib/supabase';
 
 interface ExcelImportProps {
   onDataImported: (data: { orders: any[]; customers: any[] }) => void;
   variant?: 'floating' | 'sidebar' | 'sidebar-collapsed';
 }
+
+// Function to sync stock data to Supabase
+const syncStockToSupabase = async (stockData: any[]) => {
+  try {
+    for (const item of stockData) {
+      // Map Excel columns to our database fields
+      const productName = item.nome_artigo || item.nome || item.produto;
+      const quantity = parseInt(item.stock || item.quantidade || 0);
+      const pvpNormal = parseFloat(item.pvp_normal || item.preco || 0);
+      
+      if (!productName) continue;
+
+      // Check if product exists
+      const { data: existing } = await supabase
+        .from('loja_stock')
+        .select('*')
+        .eq('produto_nome', productName)
+        .single();
+
+      if (existing) {
+        // Update existing
+        await supabase
+          .from('loja_stock')
+          .update({
+            quantidade_atual: quantity,
+            preco_custo: pvpNormal || existing.preco_custo,
+            ultima_atualizacao: new Date().toISOString()
+          })
+          .eq('produto_nome', productName);
+      } else {
+        // Create new
+        await supabase
+          .from('loja_stock')
+          .insert([{
+            produto_nome: productName,
+            quantidade_atual: quantity,
+            stock_minimo: 10,
+            preco_custo: pvpNormal
+          }]);
+      }
+    }
+    console.log(`✓ ${stockData.length} produtos sincronizados com o stock`);
+  } catch (error) {
+    console.error('Error syncing stock to Supabase:', error);
+  }
+};
 
 export function ExcelImport({ onDataImported, variant = 'floating' }: ExcelImportProps) {
   const [isOpen, setIsOpen] = useState(false);
@@ -100,10 +147,15 @@ export function ExcelImport({ onDataImported, variant = 'floating' }: ExcelImpor
       const transformedData = {
         customers: transformSheet('BD Clientes') || [],
         orders: transformSheet('Encomendas') || [],
-        stock: transformSheet('STOCK MASTER') || [],
+        stock: transformSheet('STOCK MASTER') || transformSheet('VALORES ORIGINAL') || [],
         stats: transformSheet('Estatisticas') || [],
         timestamp: new Date().toISOString()
       };
+
+      // Sync stock data to Supabase if available
+      if (transformedData.stock && transformedData.stock.length > 0) {
+        await syncStockToSupabase(transformedData.stock);
+      }
 
       // Call the callback with processed data
       onDataImported(transformedData);
@@ -277,7 +329,7 @@ export function ExcelImport({ onDataImported, variant = 'floating' }: ExcelImpor
                   <ul className="text-xs text-blue-700 dark:text-blue-400 space-y-1">
                     <li>• Planilha "Encomendas" com dados de vendas (agrupamento automático por linhas TOTAL)</li>
                     <li>• Planilha "BD Clientes" com dados de clientes</li>
-                    <li>• Planilha "STOCK MASTER" (opcional) com inventário</li>
+                    <li>• Planilha "VALORES ORIGINAL" ou "STOCK MASTER" com inventário (sincronização automática)</li>
                     <li>• Planilha "Estatisticas" (opcional) com estatísticas</li>
                   </ul>
                 </div>
