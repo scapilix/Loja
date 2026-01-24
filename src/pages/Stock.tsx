@@ -66,6 +66,7 @@ export default function Stock() {
     produto_nome: '',
     tipo_movimento: 'ENTRADA' as 'ENTRADA' | 'SAIDA' | 'AJUSTE',
     quantidade: 0,
+    data_compra: new Date().toISOString().split('T')[0],  // Purchase date for ENTRADA
     motivo: '',
     data_movimento: new Date().toISOString().split('T')[0],
     referencia: '',
@@ -256,24 +257,31 @@ export default function Stock() {
       }
 
       if (!stockData) {
-        // Create new stock item
+        // Create new stock item with purchase date
         await supabase
           .from('loja_stock')
           .insert([{
             produto_nome: formData.produto_nome,
             quantidade_atual: quantityAfter,
             stock_minimo: 10,
-            preco_custo: formData.preco_custo || null
+            preco_custo: formData.preco_custo || null,
+            data_compra: formData.tipo_movimento === 'ENTRADA' ? formData.data_compra : new Date().toISOString().split('T')[0]
           }]);
       } else {
-        // Update existing
+        // Update existing - only update data_compra if ENTRADA
+        const updateData: any = { 
+          quantidade_atual: quantityAfter,
+          preco_custo: formData.preco_custo || stockData.preco_custo,
+          ultima_atualizacao: new Date().toISOString()
+        };
+        
+        if (formData.tipo_movimento === 'ENTRADA') {
+          updateData.data_compra = formData.data_compra;
+        }
+        
         await supabase
           .from('loja_stock')
-          .update({ 
-            quantidade_atual: quantityAfter,
-            preco_custo: formData.preco_custo || stockData.preco_custo,
-            ultima_atualizacao: new Date().toISOString()
-          })
+          .update(updateData)
           .eq('produto_nome', formData.produto_nome);
       }
 
@@ -296,6 +304,7 @@ export default function Stock() {
         produto_nome: '',
         tipo_movimento: 'ENTRADA',
         quantidade: 0,
+        data_compra: new Date().toISOString().split('T')[0],
         motivo: '',
         data_movimento: new Date().toISOString().split('T')[0],
         referencia: '',
@@ -599,6 +608,21 @@ export default function Stock() {
                         />
                     </div>
                  </div>
+
+                 {/* Data de Compra - only for ENTRADA */}
+                 {formData.tipo_movimento === 'ENTRADA' && (
+                   <div className="space-y-2">
+                     <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Data da Compra ⭐</label>
+                     <input 
+                       type="date" 
+                       required 
+                       value={formData.data_compra} 
+                       onChange={(e) => setFormData({...formData, data_compra: e.target.value})} 
+                       className="w-full px-4 py-4 bg-white dark:bg-slate-900 border-2 border-purple-500/20 rounded-2xl focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm font-black" 
+                     />
+                     <p className="text-xs text-slate-500 italic ml-1">Data em que compraste este stock</p>
+                   </div>
+                 )}
 
                  <div className="space-y-2">
                     <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Produto (REF ou Nome)</label>

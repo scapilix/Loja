@@ -9,52 +9,52 @@ interface ExcelImportProps {
   variant?: 'floating' | 'sidebar' | 'sidebar-collapsed';
 }
 
-// Function to sync stock data to Supabase
-const syncStockToSupabase = async (stockData: any[]) => {
+// Function to create/update product catalog from VALORES ORIGINAL
+// Does NOT sync quantities - those are managed manually with purchase dates
+const syncProductCatalog = async (stockData: any[]) => {
   try {
     for (const item of stockData) {
-      // Map Excel columns to our database fields
+      // Map Excel columns: REF (col B), NOME_ARTIGO (col C), PVP_NORMAL (col F)
       const ref = item.ref || '';
       const productName = item.nome_artigo || item.nome || item.produto;
-      const quantity = parseInt(item.stock || item.quantidade || 0);
-      const pvpNormal = parseFloat(item.pvp_normal || item.preco || 0);
+      const pvp = parseFloat(item.pvp_normal || item.preco || 0);
       
-      if (!productName) continue;
+      if (!ref || !productName) continue;
 
-      // Check if product exists
+      // Check if product exists by REF (primary identifier)
       const { data: existing } = await supabase
         .from('loja_stock')
         .select('*')
-        .eq('produto_nome', productName)
+        .eq('ref', ref)
         .single();
 
       if (existing) {
-        // Update existing
+        // Update only catalog info, never quantity
         await supabase
           .from('loja_stock')
           .update({
-            ref: ref || existing.ref,
-            quantidade_atual: quantity,
-            preco_custo: pvpNormal || existing.preco_custo,
-            ultima_atualizacao: new Date().toISOString()
+            produto_nome: productName,
+            preco_venda: pvp || existing.preco_venda
           })
-          .eq('produto_nome', productName);
+          .eq('ref', ref);
       } else {
-        // Create new
+        // Create new product with quantity = 0
+        // User must manually add stock with purchase date
         await supabase
           .from('loja_stock')
           .insert([{
             ref: ref,
             produto_nome: productName,
-            quantidade_atual: quantity,
+            quantidade_atual: 0,  // Always start at 0
             stock_minimo: 10,
-            preco_custo: pvpNormal
+            preco_venda: pvp,
+            data_compra: new Date().toISOString().split('T')[0]  // Default, will be updated on first purchase
           }]);
       }
     }
-    console.log(`✓ ${stockData.length} produtos sincronizados com o stock`);
+    console.log(`✓ ${stockData.length} produtos no catálogo`);
   } catch (error) {
-    console.error('Error syncing stock to Supabase:', error);
+    console.error('Error syncing product catalog:', error);
   }
 };
 
@@ -155,9 +155,9 @@ export function ExcelImport({ onDataImported, variant = 'floating' }: ExcelImpor
         timestamp: new Date().toISOString()
       };
 
-      // Sync stock data to Supabase if available
+      // Sync product catalog from VALORES ORIGINAL (does not sync quantities)
       if (transformedData.stock && transformedData.stock.length > 0) {
-        await syncStockToSupabase(transformedData.stock);
+        await syncProductCatalog(transformedData.stock);
       }
 
       // Call the callback with processed data
