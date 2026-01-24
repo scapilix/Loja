@@ -187,6 +187,10 @@ function AppLayout() {
             </NavLink>
           ))}
         </nav>
+
+        <div className="p-4 mt-auto border-t border-purple-100/50 dark:border-white/5">
+          <ExcelImport onDataImported={handleDataImport} variant="sidebar" />
+        </div>
       </motion.aside>
 
       {/* Main Content */}
