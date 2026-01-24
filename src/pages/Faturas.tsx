@@ -33,10 +33,19 @@ interface Fatura {
   valor_sem_iva: number;
   valor_iva: number;
   categoria: string;
+  tipo_fatura: 'Compras' | 'Vendas' | 'Despesas';
+  taxa_iva: number;
   created_at?: string;
 }
 
 const CATEGORIES = ['Despesa/Compras', 'Serviços', 'Stock', 'Outros'];
+const INVOICE_TYPES = ['Compras', 'Vendas', 'Despesas'];
+const IVA_RATES = [
+  { label: '6%', value: 6 },
+  { label: '13%', value: 13 },
+  { label: '23%', value: 23 },
+  { label: 'Personalizado', value: -1 }
+];
 const COLORS = ['#8B5CF6', '#3B82F6', '#10B981', '#F59E0B'];
 
 export default function Faturas() {
@@ -44,6 +53,7 @@ export default function Faturas() {
   const [, setIsLoading] = useState(true);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedType, setSelectedType] = useState<string>('Todos');
   
   // Form State
   const [formData, setFormData] = useState<Fatura>({
@@ -55,9 +65,12 @@ export default function Faturas() {
     valor_total: 0,
     valor_sem_iva: 0,
     valor_iva: 0,
-    categoria: 'Despesa/Compras'
+    categoria: 'Despesa/Compras',
+    tipo_fatura: 'Compras',
+    taxa_iva: 23
   });
 
+  const [customIva, setCustomIva] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
@@ -82,8 +95,8 @@ export default function Faturas() {
     }
   };
 
-  const calculateIva = (total: number) => {
-    const semIva = total / 1.23;
+  const calculateIva = (total: number, taxaIva: number) => {
+    const semIva = total / (1 + taxaIva / 100);
     const iva = total - semIva;
     return {
       semIva: parseFloat(semIva.toFixed(2)),
@@ -92,13 +105,42 @@ export default function Faturas() {
   };
 
   const handleTotalChange = (val: number) => {
-    const { semIva, iva } = calculateIva(val);
+    const { semIva, iva } = calculateIva(val, formData.taxa_iva);
     setFormData((prev: Fatura) => ({
       ...prev,
       valor_total: val,
       valor_sem_iva: semIva,
       valor_iva: iva
     }));
+  };
+
+  const handleIvaChange = (rate: number) => {
+    if (rate === -1) {
+      setCustomIva(true);
+    } else {
+      setCustomIva(false);
+      setFormData((prev: Fatura) => {
+        const { semIva, iva } = calculateIva(prev.valor_total, rate);
+        return {
+          ...prev,
+          taxa_iva: rate,
+          valor_sem_iva: semIva,
+          valor_iva: iva
+        };
+      });
+    }
+  };
+
+  const handleCustomIvaChange = (rate: number) => {
+    setFormData((prev: Fatura) => {
+      const { semIva, iva } = calculateIva(prev.valor_total, rate);
+      return {
+        ...prev,
+        taxa_iva: rate,
+        valor_sem_iva: semIva,
+        valor_iva: iva
+      };
+    });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -122,8 +164,11 @@ export default function Faturas() {
             valor_total: 0,
             valor_sem_iva: 0,
             valor_iva: 0,
-            categoria: 'Despesa/Compras'
+            categoria: 'Despesa/Compras',
+            tipo_fatura: 'Compras',
+            taxa_iva: 23
         });
+        setCustomIva(false);
         fetchFaturas();
       }
     } catch (err) {
@@ -146,16 +191,20 @@ export default function Faturas() {
     }
   };
 
-  const totalSpent = faturas.reduce((acc: number, f: Fatura) => acc + Number(f.valor_total), 0);
-  const totalIva = faturas.reduce((acc: number, f: Fatura) => acc + Number(f.valor_iva), 0);
-  const avgFatura = faturas.length > 0 ? totalSpent / faturas.length : 0;
+  const filteredByType = selectedType === 'Todos' 
+    ? faturas 
+    : faturas.filter(f => f.tipo_fatura === selectedType);
+
+  const totalSpent = filteredByType.reduce((acc: number, f: Fatura) => acc + Number(f.valor_total), 0);
+  const totalIva = filteredByType.reduce((acc: number, f: Fatura) => acc + Number(f.valor_iva), 0);
+  const avgFatura = filteredByType.length > 0 ? totalSpent / filteredByType.length : 0;
 
   const categoryData = CATEGORIES.map(cat => ({
     name: cat,
-    value: faturas.filter((f: Fatura) => f.categoria === cat).reduce((acc: number, f: Fatura) => acc + Number(f.valor_total), 0)
+    value: filteredByType.filter((f: Fatura) => f.categoria === cat).reduce((acc: number, f: Fatura) => acc + Number(f.valor_total), 0)
   })).filter(c => c.value > 0);
 
-  const filteredFaturas = faturas.filter(f => 
+  const filteredFaturas = filteredByType.filter(f => 
     f.entidade.toLowerCase().includes(searchTerm.toLowerCase()) ||
     f.numero_fatura.toLowerCase().includes(searchTerm.toLowerCase()) ||
     f.nif.includes(searchTerm)
@@ -177,6 +226,16 @@ export default function Faturas() {
         </div>
 
         <div className="flex items-center gap-3">
+            <select
+              value={selectedType}
+              onChange={(e) => setSelectedType(e.target.value)}
+              className="px-4 py-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-2xl font-bold text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+            >
+              <option value="Todos">Todos os Tipos</option>
+              {INVOICE_TYPES.map(type => (
+                <option key={type} value={type}>{type}</option>
+              ))}
+            </select>
             <div className="relative group">
                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-purple-500 transition-colors" />
                 <input 
@@ -202,7 +261,7 @@ export default function Faturas() {
           label="Total Despesas"
           value={formatCurrency(totalSpent)}
           icon={DollarSign}
-          trend={`${faturas.length} faturas`}
+          trend={`${filteredByType.length} faturas`}
           color="purple"
         />
         <KpiCard
@@ -221,7 +280,7 @@ export default function Faturas() {
         />
         <KpiCard
           label="Faturas Novas"
-          value={faturas.filter(f => f.is_novo).length}
+          value={filteredByType.filter(f => f.is_novo).length}
           icon={CheckCircle2}
           trend="Entidades novas"
           color="orange"
@@ -242,8 +301,9 @@ export default function Faturas() {
                 <thead className="bg-slate-50 dark:bg-white/5 text-[10px] font-black uppercase text-slate-400 tracking-widest">
                   <tr>
                     <th className="px-8 py-4">Data</th>
-                    <th className="px-4 py-4">Entidade</th>
                     <th className="px-4 py-4">Tipo</th>
+                    <th className="px-4 py-4">Entidade</th>
+                    <th className="px-4 py-4">Categoria</th>
                     <th className="px-4 py-4 text-right">Valor Total</th>
                     <th className="px-8 py-4 text-center">Ações</th>
                   </tr>
@@ -253,6 +313,15 @@ export default function Faturas() {
                     <tr key={fatura.id} className="group hover:bg-slate-50 dark:hover:bg-white/5 transition-colors">
                       <td className="px-8 py-5 text-sm font-bold text-slate-600 dark:text-slate-400">
                         {new Date(fatura.data).toLocaleDateString('pt-PT')}
+                      </td>
+                      <td className="px-4 py-5">
+                        <span className={`px-3 py-1 text-[9px] font-black uppercase tracking-tighter rounded-full ${
+                          fatura.tipo_fatura === 'Compras' ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400' :
+                          fatura.tipo_fatura === 'Vendas' ? 'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400' :
+                          'bg-rose-50 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400'
+                        }`}>
+                          {fatura.tipo_fatura}
+                        </span>
                       </td>
                       <td className="px-4 py-5">
                          <div className="flex flex-col">
@@ -346,8 +415,27 @@ export default function Faturas() {
               <form onSubmit={handleSubmit} className="p-8 space-y-8 overflow-y-auto max-h-[70vh]">
                  <div className="grid grid-cols-2 gap-6">
                     <div className="space-y-2">
+                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Tipo de Fatura</label>
+                        <select 
+                          value={formData.tipo_fatura} 
+                          onChange={(e) => setFormData({...formData, tipo_fatura: e.target.value as 'Compras' | 'Vendas' | 'Despesas'})} 
+                          className="w-full px-4 py-4 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-2xl focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm font-bold"
+                        >
+                          {INVOICE_TYPES.map(type => (
+                            <option key={type} value={type}>{type}</option>
+                          ))}
+                        </select>
+                    </div>
+                    <div className="space-y-2">
                         <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Data</label>
                         <input type="date" required value={formData.data} onChange={(e) => setFormData({...formData, data: e.target.value})} className="w-full px-4 py-4 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-2xl focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm font-bold" />
+                    </div>
+                 </div>
+
+                 <div className="grid grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Entidade</label>
+                        <input type="text" required value={formData.entidade} onChange={(e) => setFormData({...formData, entidade: e.target.value})} className="w-full px-4 py-4 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-2xl focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm font-bold" />
                     </div>
                     <div className="space-y-2">
                         <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Nº Fatura</label>
@@ -355,9 +443,38 @@ export default function Faturas() {
                     </div>
                  </div>
 
-                 <div className="space-y-2">
-                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Entidade</label>
-                    <input type="text" required value={formData.entidade} onChange={(e) => setFormData({...formData, entidade: e.target.value})} className="w-full px-4 py-4 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-2xl focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm font-bold" />
+                 <div className="grid grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Taxa IVA</label>
+                        <select 
+                          onChange={(e) => handleIvaChange(Number(e.target.value))} 
+                          className="w-full px-4 py-4 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-2xl focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm font-bold"
+                        >
+                          {IVA_RATES.map(rate => (
+                            <option key={rate.label} value={rate.value}>{rate.label}</option>
+                          ))}
+                        </select>
+                    </div>
+                    {customIva && (
+                      <div className="space-y-2">
+                          <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">IVA Personalizado (%)</label>
+                          <input 
+                            type="number" 
+                            step="0.01"
+                            value={formData.taxa_iva}
+                            onChange={(e) => handleCustomIvaChange(Number(e.target.value))}
+                            className="w-full px-4 py-4 bg-white dark:bg-slate-900 border-2 border-purple-500/20 rounded-2xl focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm font-black" 
+                          />
+                      </div>
+                    )}
+                    <div className="space-y-2">
+                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Categoria</label>
+                        <select value={formData.categoria} onChange={(e) => setFormData({...formData, categoria: e.target.value})} className="w-full px-4 py-4 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-2xl focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm font-bold">
+                            {CATEGORIES.map(cat => (
+                                <option key={cat} value={cat}>{cat}</option>
+                            ))}
+                        </select>
+                    </div>
                  </div>
 
                  <div className="grid grid-cols-3 gap-6">
@@ -370,18 +487,9 @@ export default function Faturas() {
                         <input type="number" readOnly value={formData.valor_sem_iva} className="w-full px-4 py-4 bg-slate-100 dark:bg-white/5 border rounded-2xl text-sm font-bold opacity-60" />
                     </div>
                     <div className="space-y-2">
-                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">IVA (23%)</label>
+                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">IVA ({formData.taxa_iva}%)</label>
                         <input type="number" readOnly value={formData.valor_iva} className="w-full px-4 py-4 bg-slate-100 dark:bg-white/5 border rounded-2xl text-sm font-bold opacity-60" />
                     </div>
-                 </div>
-
-                 <div className="space-y-2">
-                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Categoria</label>
-                    <select value={formData.categoria} onChange={(e) => setFormData({...formData, categoria: e.target.value})} className="w-full px-4 py-4 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-2xl focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm font-bold">
-                        {CATEGORIES.map(cat => (
-                            <option key={cat} value={cat}>{cat}</option>
-                        ))}
-                    </select>
                  </div>
 
                  <button type="submit" disabled={isSubmitting} className="w-full py-5 bg-purple-600 text-white rounded-2xl font-black uppercase tracking-widest disabled:opacity-50">
