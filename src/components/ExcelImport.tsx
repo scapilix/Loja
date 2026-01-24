@@ -147,7 +147,7 @@ export function ExcelImport({ onDataImported, variant = 'floating' }: ExcelImpor
       const transformedData = {
         customers: transformSheet('BD Clientes') || [],
         orders: transformSheet('Encomendas') || [],
-        stock: transformSheet('STOCK MASTER') || transformSheet('VALORES ORIGINAL') || [],
+        stock: transformSheet('VALORES ORIGINAL (4)') || transformSheet('VALORES ORIGINAL') || transformSheet('STOCK MASTER') || [],
         stats: transformSheet('Estatisticas') || [],
         timestamp: new Date().toISOString()
       };
