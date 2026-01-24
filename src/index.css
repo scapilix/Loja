@@ -1,0 +1,115 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Brand Colors */
+    --color-primary-400: 239 68% 68%;  /* Electric Blue */
+    --color-primary-500: 271 91% 65%;  /* Purple */
+    --color-primary-600: 263 70% 50%;  /* Indigo */
+    
+    /* Data Visualization */
+    --color-success-400: 167 80% 55%;
+    --color-success-500: 160 84% 39%;
+    --color-warning-400: 38 92% 58%;
+    --color-warning-500: 38 92% 50%;
+    --color-danger-400: 0 84% 68%;
+    --color-danger-500: 0 72% 51%;
+    --color-info-400: 213 94% 68%;
+    --color-info-500: 217 91% 60%;
+    
+    /* Neutrals - Light Mode */
+    --background: 270 100% 99%;
+    --foreground: 222 47% 11%;
+    --card: 0 0% 100%;
+    --card-foreground: 222 47% 11%;
+    --muted: 215 20% 65%;
+    --muted-foreground: 215 16% 47%;
+    --border: 271 40% 85%;
+    
+    /* Design Tokens */
+    --blur-glass: 24px;
+    --spacing-section: 3.5rem;
+    --radius-card: 1.5rem;
+  }
+
+  .dark {
+    /* Neutrals - Dark Mode */
+    --background: 270 50% 3%;
+    --foreground: 210 40% 98%;
+    --card: 270 35% 5%;
+    --card-foreground: 210 40% 98%;
+    --muted: 215 20% 65%;
+    --muted-foreground: 217 10% 65%;
+    --border: 217 33% 17%;
+  }
+}
+
+body {
+  @apply bg-[#fdfaff] text-slate-900 transition-colors duration-500 selection:bg-purple-500/30;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+}
+
+h1, h2, h3, h4, .font-heading {
+  font-family: 'Inter', sans-serif;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.font-mono {
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.dark body {
+  @apply bg-[#08040d] text-slate-50;
+  background-image: 
+    radial-gradient(at 0% 0%, hsla(271, 91%, 65%, 0.05) 0px, transparent 50%),
+    radial-gradient(at 100% 100%, hsla(263, 70%, 50%, 0.03) 0px, transparent 50%),
+    url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+  background-attachment: fixed;
+}
+
+/* Glassmorphism Reimagined */
+.glass {
+  @apply bg-white/70 backdrop-blur-2xl border border-slate-200/60 shadow-lg;
+}
+
+.dark .glass {
+  @apply bg-white/[0.03] backdrop-blur-2xl border border-white/[0.05] shadow-none;
+}
+
+.glass-active {
+  @apply bg-purple-600/10 border-purple-500/30;
+}
+
+.dark .glass-active {
+  @apply bg-purple-500/20 border-purple-400/30;
+}
+
+/* Custom Effects */
+.glow-primary {
+  @apply shadow-[0_0_20px_theme(colors.purple.500/20)];
+}
+
+.text-gradient {
+  @apply bg-gradient-to-r from-purple-600 to-indigo-600 dark:from-white dark:to-purple-200 bg-clip-text text-transparent;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-purple-600/20 rounded-full hover:bg-purple-600/40 transition-colors;
+}
