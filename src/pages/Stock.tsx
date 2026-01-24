@@ -327,12 +327,6 @@ export default function Stock() {
     return { label: 'OK', color: 'emerald' };
   };
 
-  // Get unique product names from existing stock and Excel data
-  const availableProducts = Array.from(new Set([
-    ...stockItems.map(s => s.produto_nome),
-    ...(productsFromData || []).map((p: any) => p.nome_artigo || p.nome || '').filter(Boolean)
-  ])).sort();
-
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -530,18 +524,33 @@ export default function Stock() {
                  </div>
 
                  <div className="space-y-2">
-                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Produto</label>
-                    <select 
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Produto (REF ou Nome)</label>
+                    <input 
                       required
+                      type="text"
+                      list="products-list"
                       value={formData.produto_nome} 
                       onChange={(e) => setFormData({...formData, produto_nome: e.target.value})} 
+                      placeholder="Digite a REF ou nome do produto..."
                       className="w-full px-4 py-4 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-2xl focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm font-bold"
-                    >
-                      <option value="">Selecionar produto...</option>
-                      {availableProducts.map(product => (
-                        <option key={product} value={product}>{product}</option>
+                    />
+                    <datalist id="products-list">
+                      {(productsFromData || []).map((product: any, idx: number) => {
+                        const ref = product.ref || '';
+                        const nome = product.nome_artigo || product.nome || '';
+                        const displayText = ref ? `${ref} - ${nome}` : nome;
+                        return (
+                          <option key={idx} value={nome}>
+                            {displayText}
+                          </option>
+                        );
+                      })}
+                      {stockItems.map(item => (
+                        <option key={item.id} value={item.produto_nome}>
+                          {item.produto_nome}
+                        </option>
                       ))}
-                    </select>
+                    </datalist>
                  </div>
 
                  <div className="grid grid-cols-2 gap-6">
