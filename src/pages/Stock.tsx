@@ -22,8 +22,10 @@ interface StockItem {
   ref?: string;
   produto_nome: string;
   quantidade_atual: number;
+  data_compra?: string;
   stock_minimo: number;
   preco_custo: number | null;
+  preco_venda?: number | null;
   ultima_atualizacao: string;
   created_at?: string;
 }
@@ -131,87 +133,100 @@ export default function Stock() {
     setIsSyncing(true);
     try {
       let syncedCount = 0;
+      let skippedCount = 0;
       
       // Group sales by product and date
       const salesByProduct = new Map<string, Map<string, number>>();
       
       orders.forEach((order: any) => {
         const orderDate = order.data_encomenda;
-        if (!salesByProduct.has(order.produto)) {
-          salesByProduct.set(order.produto, new Map());
+        const productName = order.produto;
+        
+        if (!salesByProduct.has(productName)) {
+          salesByProduct.set(productName, new Map());
         }
-        const productSales = salesByProduct.get(order.produto)!;
+        const productSales = salesByProduct.get(productName)!;
         const currentQty = productSales.get(orderDate) || 0;
         productSales.set(orderDate, currentQty + order.quantidade);
       });
 
       // Process each product's sales
       for (const [productName, salesByDate] of salesByProduct.entries()) {
-        // Get current stock
-        let { data: stockData } = await supabase
-          .from('loja_stock')
-          .select('*')
-          .eq('produto_nome', productName)
-          .single();
-
-        if (!stockData) {
-          // Create initial stock entry if doesn't exist
-          const { data: newStock } = await supabase
-            .from('loja_stock')
-            .insert([{
-              produto_nome: productName,
-              quantidade_atual: 0,
-              stock_minimo: 10
-            }])
-            .select()
-            .single();
-          stockData = newStock;
-        }
-
         // Sort dates chronologically
         const sortedDates = Array.from(salesByDate.keys()).sort();
         
-        for (const date of sortedDates) {
-          const quantity = salesByDate.get(date)!;
+        for (const saleDate of sortedDates) {
+          const qtySold = salesByDate.get(saleDate)!;
           
           // Check if movement already exists
           const { data: existingMovement } = await supabase
             .from('loja_stock_movimentos')
             .select('*')
             .eq('produto_nome', productName)
-            .eq('data_movimento', date)
+            .eq('data_movimento', saleDate)
             .eq('tipo_movimento', 'VENDA')
             .single();
 
-          if (!existingMovement && stockData) {
-            const quantityBefore = stockData.quantidade_atual;
-            const quantityAfter = Math.max(0, quantityBefore - quantity);
+          if (existingMovement) continue; // Already synced
 
-            // Create movement
+          // Get available stock PURCHASED BEFORE OR ON sale date (temporal logic)
+          const { data: availableStock } = await supabase
+            .from('loja_stock')
+            .select('*')
+            .eq('produto_nome', productName)
+            .lte('data_compra', saleDate)  // ⭐ KEY: Purchase date <= Sale date
+            .gt('quantidade_atual', 0)
+            .order('data_compra', { ascending: true });  // FIFO
+
+          if (!availableStock || availableStock.length === 0) {
+            console.log(`⚠️ Venda ${saleDate}: Sem stock disponível para ${productName} (comprado antes)`);
+            skippedCount++;
+            continue;  // No stock purchased before this sale
+          }
+
+          let qtyRemaining = qtySold;
+          let totalDeducted = 0;
+
+          // Deduct from stock lots in FIFO order
+          for (const lot of availableStock) {
+            if (qtyRemaining <= 0) break;
+
+            const qtyToDeduct = Math.min(lot.quantidade_atual, qtyRemaining);
+            const newQty = lot.quantidade_atual - qtyToDeduct;
+
+            // Update stock lot
+            await supabase
+              .from('loja_stock')
+              .update({
+                quantidade_atual: newQty,
+                ultima_atualizacao: new Date().toISOString()
+              })
+              .eq('id', lot.id);
+
+            qtyRemaining -= qtyToDeduct;
+            totalDeducted += qtyToDeduct;
+          }
+
+          // Create movement record
+          if (totalDeducted > 0) {
             await supabase
               .from('loja_stock_movimentos')
               .insert([{
                 produto_nome: productName,
                 tipo_movimento: 'VENDA',
-                quantidade: quantity,
-                quantidade_anterior: quantityBefore,
-                quantidade_nova: quantityAfter,
-                motivo: 'Venda automática via sincronização',
-                data_movimento: date,
-                referencia: `AUTO_SYNC_${date}`
+                quantidade: totalDeducted,
+                quantidade_anterior: 0,  // Will be updated in next version
+                quantidade_nova: 0,      // Will be updated in next version
+                motivo: `Venda automática via sincronização (${totalDeducted} de ${qtySold})`,
+                data_movimento: saleDate,
+                referencia: `AUTO_SYNC_${saleDate}`
               }]);
 
-            // Update stock
-            await supabase
-              .from('loja_stock')
-              .update({ 
-                quantidade_atual: quantityAfter,
-                ultima_atualizacao: new Date().toISOString()
-              })
-              .eq('produto_nome', productName);
-
-            stockData.quantidade_atual = quantityAfter;
             syncedCount++;
+          }
+
+          if (qtyRemaining > 0) {
+            console.log(`⚠️ Venda ${saleDate}: ${qtyRemaining} unidades de ${productName} não tinham stock`);
           }
         }
       }
@@ -220,7 +235,7 @@ export default function Stock() {
       localStorage.setItem('stock_last_sync', syncTimestamp);
       setLastSyncDate(syncTimestamp);
       
-      alert(`Sincronização concluída! ${syncedCount} movimentos criados.`);
+      alert(`Sincronização concluída!\n✅ ${syncedCount} vendas processadas\n⚠️ ${skippedCount} vendas ignoradas (sem stock comprado antes)`);
       fetchStock();
       fetchMovements();
     } catch (err) {
@@ -474,9 +489,11 @@ export default function Stock() {
                   <th className="px-4 py-4">REF</th>
                   <th className="px-8 py-4">Produto</th>
                   <th className="px-4 py-4 text-center">Quantidade</th>
+                  <th className="px-4 py-4 text-center">Data Compra</th>
                   <th className="px-4 py-4 text-center">Stock Mínimo</th>
                   <th className="px-4 py-4 text-center">Status</th>
                   <th className="px-4 py-4 text-right">Preço Custo</th>
+                  <th className="px-4 py-4 text-right">PVP (Venda)</th>
                   <th className="px-4 py-4 text-right">Valor Total</th>
                   <th className="px-8 py-4">Última Atualização</th>
                 </tr>
@@ -533,6 +550,9 @@ export default function Stock() {
                           </span>
                         )}
                       </td>
+                      <td className="px-4 py-5 text-center text-sm font-bold text-emerald-600 dark:text-emerald-400">
+                        {item.data_compra ? new Date(item.data_compra).toLocaleDateString('pt-PT') : '-'}
+                      </td>
                       <td className="px-4 py-5 text-center text-sm text-slate-600 dark:text-slate-400 font-bold">
                         {item.stock_minimo}
                       </td>
@@ -543,6 +563,9 @@ export default function Stock() {
                       </td>
                       <td className="px-4 py-5 text-right text-sm font-bold text-slate-600 dark:text-slate-400">
                         {item.preco_custo ? formatCurrency(item.preco_custo) : '-'}
+                      </td>
+                      <td className="px-4 py-5 text-right text-sm font-bold text-blue-600 dark:text-blue-400">
+                        {item.preco_venda ? formatCurrency(item.preco_venda) : '-'}
                       </td>
                       <td className="px-4 py-5 text-right font-black text-slate-950 dark:text-white">
                         {item.preco_custo ? formatCurrency(item.quantidade_atual * item.preco_custo) : '-'}
