@@ -254,38 +254,45 @@ export default function BaseClientes() {
                                 Histórico de Pedidos
                             </h3>
                             
-                            <div className="relative border-l-2 border-slate-200 dark:border-slate-700 ml-3 space-y-8 pl-6 pb-2">
-                                {selectedCustomer.history.map((order: any, i: number) => (
-                                    <div key={i} className="relative">
-                                        <div className="absolute -left-[31px] top-0 w-4 h-4 rounded-full border-2 border-white dark:border-slate-900 bg-purple-500" />
-                                        
-                                        <div className="bg-slate-50 dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700 hover:shadow-md transition-shadow">
-                                            <div className="flex justify-between items-start mb-2">
-                                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-slate-200 dark:bg-slate-700 text-xs font-bold text-slate-600 dark:text-slate-300">
-                                                    <Calendar className="w-3 h-3" />
-                                                    {formatDate(order.data_venda)}
-                                                </span>
-                                                <span className="font-bold text-emerald-600 dark:text-emerald-400">
-                                                    {formatCurrency(Number(order.pvp))}
-                                                </span>
-                                            </div>
+                            {selectedCustomer.history && selectedCustomer.history.length > 0 ? (
+                                <div className="relative border-l-2 border-slate-200 dark:border-slate-700 ml-3 space-y-8 pl-6 pb-2">
+                                    {selectedCustomer.history.map((order: any, i: number) => (
+                                        <div key={i} className="relative">
+                                            <div className="absolute -left-[31px] top-0 w-4 h-4 rounded-full border-2 border-white dark:border-slate-900 bg-purple-500" />
                                             
-                                            <div className="text-xs text-slate-500 mb-2 font-mono">
-                                                {order.id_venda || '#N/A'} • {order.forma_de_pagamento}
-                                            </div>
+                                            <div className="bg-slate-50 dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700 hover:shadow-md transition-shadow">
+                                                <div className="flex justify-between items-start mb-2">
+                                                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-slate-200 dark:bg-slate-700 text-xs font-bold text-slate-600 dark:text-slate-300">
+                                                        <Calendar className="w-3 h-3" />
+                                                        {formatDate(order.data_venda)}
+                                                    </span>
+                                                    <span className="font-bold text-emerald-600 dark:text-emerald-400">
+                                                        {formatCurrency(Number(order.pvp))}
+                                                    </span>
+                                                </div>
+                                                
+                                                <div className="text-xs text-slate-500 mb-2 font-mono">
+                                                    {order.id_venda || '#N/A'} • {order.forma_de_pagamento}
+                                                </div>
 
-                                            <div className="space-y-1">
-                                                {order.items?.map((item: any, k: number) => (
-                                                    <div key={k} className="flex justify-between items-center text-xs border-b border-dashed border-slate-200 dark:border-slate-700/50 last:border-0 pb-1 last:pb-0">
-                                                        <span className="text-slate-700 dark:text-slate-300">{item.designacao || item.ref}</span>
-                                                        <span className="text-slate-500">x{item.quantidade || 1}</span>
-                                                    </div>
-                                                ))}
+                                                <div className="space-y-1">
+                                                    {order.items?.map((item: any, k: number) => (
+                                                        <div key={k} className="flex justify-between items-center text-xs border-b border-dashed border-slate-200 dark:border-slate-700/50 last:border-0 pb-1 last:pb-0">
+                                                            <span className="text-slate-700 dark:text-slate-300">{item.designacao || item.ref}</span>
+                                                            <span className="text-slate-500">x{item.quantidade || 1}</span>
+                                                        </div>
+                                                    ))}
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
-                                ))}
-                            </div>
+                                    ))}
+                                </div>
+                            ) : (
+                                <div className="flex flex-col items-center justify-center p-12 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border-2 border-dashed border-slate-200 dark:border-slate-700">
+                                    <ShoppingBag className="w-10 h-10 text-slate-300 dark:text-slate-600 mb-3" />
+                                    <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">Este cliente ainda não realizou compras.</p>
+                                </div>
+                            )}
                         </div>
                     </div>
                 </motion.div>

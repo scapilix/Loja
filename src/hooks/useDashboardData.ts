@@ -313,22 +313,43 @@ export const useDashboardData = (filters: DashboardFilters = {}): DashboardMetri
       .sort((a, b) => b.value - a.value)
       .slice(0, 8);
 
-    // All Customers List (New)
-    const allCustomers = Object.entries(customerMap)
-      .map(([name, data]) => {
-          const dbData = customerDbMap.get(name);
-          return {
-            name,
-            revenue: data.revenue,
-            orders: data.orders,
-            instagram: data.instagram,
-            address: data.address,
-            email: dbData?.email_cliente || '-',
-            phone: dbData?.telefone_cliente || '-',
-            history: data.history
-          };
-      })
-      .sort((a, b) => b.orders - a.orders);
+    // All Customers List (New Implementation)
+    // First, start with everything in the DB
+    const allCustomers = (rawData.customers || []).map((dbC: any) => {
+      const name = (dbC.nome_cliente || 'N/A').trim();
+      const normName = name.toUpperCase();
+      const salesData = customerMap[normName] || { revenue: 0, orders: 0, instagram: 'N/A', address: dbC.morada || '-', history: [] };
+      
+      return {
+        name: dbC.nome_cliente || 'Sem Nome',
+        revenue: salesData.revenue,
+        orders: salesData.orders,
+        instagram: dbC.instagram || salesData.instagram || '-',
+        address: dbC.morada || salesData.address || '-',
+        email: dbC.email_cliente || '-',
+        phone: dbC.telefone_cliente || '-',
+        history: salesData.history
+      };
+    });
+
+    // Add any customers found in orders but NOT in DB (safety check)
+    const dbNames = new Set((rawData.customers || []).map((c: any) => (c.nome_cliente || '').trim().toUpperCase()));
+    Object.entries(customerMap).forEach(([name, data]) => {
+      if (!dbNames.has(name)) {
+        allCustomers.push({
+          name: data.history[0]?.nome_cliente || name,
+          revenue: data.revenue,
+          orders: data.orders,
+          instagram: data.instagram,
+          address: data.address,
+          email: '-',
+          phone: '-',
+          history: data.history
+        });
+      }
+    });
+
+    allCustomers.sort((a, b) => b.revenue - a.revenue);
 
     // Top customers (top 5)
     const topCustomers = allCustomers
