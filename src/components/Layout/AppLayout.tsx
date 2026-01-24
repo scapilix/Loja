@@ -101,8 +101,8 @@ function AppLayout() {
           </div>
           {!isSidebarCollapsed && (
             <div className="flex flex-col overflow-hidden whitespace-nowrap">
-              <span className="font-black text-xl tracking-tighter text-gradient leading-none">Antigravity</span>
-              <span className="text-[9px] font-black uppercase tracking-[0.3em] text-purple-600 dark:text-purple-400 mt-1.5 drop-shadow-sm">Gestão de Loja</span>
+              <span className="font-black text-2xl tracking-tighter text-gradient leading-none">Antigravity</span>
+              <span className="text-[10px] font-black uppercase tracking-[0.3em] text-purple-600 dark:text-purple-400 mt-2 drop-shadow-sm">Gestão de Loja</span>
             </div>
           )}
         </div>
