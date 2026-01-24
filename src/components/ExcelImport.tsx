@@ -14,6 +14,7 @@ const syncStockToSupabase = async (stockData: any[]) => {
   try {
     for (const item of stockData) {
       // Map Excel columns to our database fields
+      const ref = item.ref || '';
       const productName = item.nome_artigo || item.nome || item.produto;
       const quantity = parseInt(item.stock || item.quantidade || 0);
       const pvpNormal = parseFloat(item.pvp_normal || item.preco || 0);
@@ -32,6 +33,7 @@ const syncStockToSupabase = async (stockData: any[]) => {
         await supabase
           .from('loja_stock')
           .update({
+            ref: ref || existing.ref,
             quantidade_atual: quantity,
             preco_custo: pvpNormal || existing.preco_custo,
             ultima_atualizacao: new Date().toISOString()
@@ -42,6 +44,7 @@ const syncStockToSupabase = async (stockData: any[]) => {
         await supabase
           .from('loja_stock')
           .insert([{
+            ref: ref,
             produto_nome: productName,
             quantidade_atual: quantity,
             stock_minimo: 10,

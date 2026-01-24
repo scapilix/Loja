@@ -19,6 +19,7 @@ import { useData } from '../contexts/DataContext';
 
 interface StockItem {
   id?: number;
+  ref?: string;
   produto_nome: string;
   quantidade_atual: number;
   stock_minimo: number;
@@ -58,6 +59,8 @@ export default function Stock() {
   const [searchTerm, setSearchTerm] = useState('');
   const [isSyncing, setIsSyncing] = useState(false);
   const [lastSyncDate, setLastSyncDate] = useState<string | null>(null);
+  const [editingId, setEditingId] = useState<number | null>(null);
+  const [editQuantity, setEditQuantity] = useState<number>(0);
   
   const [formData, setFormData] = useState({
     produto_nome: '',
@@ -307,6 +310,42 @@ export default function Stock() {
     }
   };
 
+  const handleQuickEdit = async (item: StockItem, newQuantity: number) => {
+    try {
+      const quantityBefore = item.quantidade_atual;
+      const quantityAfter = newQuantity;
+
+      // Update stock
+      await supabase
+        .from('loja_stock')
+        .update({ 
+          quantidade_atual: quantityAfter,
+          ultima_atualizacao: new Date().toISOString()
+        })
+        .eq('id', item.id);
+
+      // Create movement
+      await supabase
+        .from('loja_stock_movimentos')
+        .insert([{
+          produto_nome: item.produto_nome,
+          tipo_movimento: 'AJUSTE',
+          quantidade: quantityAfter,
+          quantidade_anterior: quantityBefore,
+          quantidade_nova: quantityAfter,
+          motivo: 'Ajuste rápido via tabela',
+          data_movimento: new Date().toISOString().split('T')[0],
+          referencia: null
+        }]);
+
+      setEditingId(null);
+      fetchStock();
+      fetchMovements();
+    } catch (err) {
+      console.error('Error updating stock:', err);
+    }
+  };
+
   const filteredStock = stockItems.filter(item => 
     item.produto_nome.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -423,6 +462,7 @@ export default function Stock() {
             <table className="w-full text-left">
               <thead className="bg-slate-50 dark:bg-white/5 text-[10px] font-black uppercase text-slate-400 tracking-widest">
                 <tr>
+                  <th className="px-4 py-4">REF</th>
                   <th className="px-8 py-4">Produto</th>
                   <th className="px-4 py-4 text-center">Quantidade</th>
                   <th className="px-4 py-4 text-center">Stock Mínimo</th>
@@ -435,17 +475,54 @@ export default function Stock() {
               <tbody className="divide-y divide-slate-50 dark:divide-white/5">
                 {filteredStock.map((item: StockItem) => {
                   const status = getStockStatus(item);
+                  const isEditing = editingId === item.id;
                   return (
                     <tr key={item.id} className="group hover:bg-slate-50 dark:hover:bg-white/5 transition-colors">
+                      <td className="px-4 py-5">
+                        <span className="text-xs font-bold text-purple-600 dark:text-purple-400 uppercase">
+                          {item.ref || '-'}
+                        </span>
+                      </td>
                       <td className="px-8 py-5">
                         <span className="text-sm font-black text-slate-950 dark:text-white uppercase tracking-tight">
                           {item.produto_nome}
                         </span>
                       </td>
                       <td className="px-4 py-5 text-center">
-                        <span className="text-2xl font-black text-slate-950 dark:text-white">
-                          {item.quantidade_atual}
-                        </span>
+                        {isEditing ? (
+                          <input 
+                            type="number"
+                            autoFocus
+                            min="0"
+                            defaultValue={item.quantidade_atual}
+                            onBlur={(e) => {
+                              const newQty = Number(e.target.value);
+                              if (newQty !== item.quantidade_atual) {
+                                handleQuickEdit(item, newQty);
+                              } else {
+                                setEditingId(null);
+                              }
+                            }}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') {
+                                e.currentTarget.blur();
+                              } else if (e.key === 'Escape') {
+                                setEditingId(null);
+                              }
+                            }}
+                            className="w-20 px-2 py-1 text-center border-2 border-purple-500 rounded-lg font-black text-lg"
+                          />
+                        ) : (
+                          <span 
+                            onClick={() => {
+                              setEditingId(item.id!);
+                              setEditQuantity(item.quantidade_atual);
+                            }}
+                            className="text-2xl font-black text-slate-950 dark:text-white cursor-pointer hover:text-purple-600 transition-colors"
+                          >
+                            {item.quantidade_atual}
+                          </span>
+                        )}
                       </td>
                       <td className="px-4 py-5 text-center text-sm text-slate-600 dark:text-slate-400 font-bold">
                         {item.stock_minimo}
