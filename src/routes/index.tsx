@@ -8,6 +8,7 @@ import Rankings from '../pages/Rankings';
 import Portes from '../pages/Portes';
 import Faturas from '../pages/Faturas';
 import Despesas from '../pages/Despesas';
+import Stock from '../pages/Stock';
 import Login from '../pages/Login';
 import { FilterProvider } from '../contexts/FilterContext';
 import { DataProvider } from '../contexts/DataContext';
@@ -39,6 +40,7 @@ function AppRoutes() {
                 <Route index element={<Overview />} />
                 <Route path="clientes" element={<Clientes />} />
                 <Route path="base-clientes" element={<BaseClientes />} />
+                <Route path="stock" element={<Stock />} />
                 <Route path="produtos" element={<Produtos />} />
                 <Route path="rankings" element={<Rankings />} />
                 <Route path="portes" element={<Portes />} />
