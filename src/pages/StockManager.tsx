@@ -10,7 +10,10 @@ import {
   X,
   Coins,
   Wallet,
-  Banknote
+  Banknote,
+  ArrowUpDown,
+  ArrowUp,
+  ArrowDown
 } from 'lucide-react';
 import { useStockLogic, StockStatus } from '../hooks/useStockLogic';
 import { useData } from '../contexts/DataContext';
@@ -52,10 +55,46 @@ export default function StockManager() {
     preco_custo: ''
   });
 
-  const filteredStock = stockInventory.filter(item => 
-    (item.ref || '').includes(searchTerm.toUpperCase()) || 
-    (item.name || '').toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // Sorting State
+  const [sortConfig, setSortConfig] = useState<{ key: keyof StockStatus | 'profit_unit'; direction: 'asc' | 'desc' } | null>(null);
+
+  const handleSort = (key: keyof StockStatus | 'profit_unit') => {
+    let direction: 'asc' | 'desc' = 'asc';
+    if (sortConfig && sortConfig.key === key && sortConfig.direction === 'asc') {
+      direction = 'desc';
+    }
+    setSortConfig({ key, direction });
+  };
+
+  const filteredStock = useMemo(() => {
+    let result = stockInventory.filter(item => 
+      (item.ref || '').includes(searchTerm.toUpperCase()) || 
+      (item.name || '').toLowerCase().includes(searchTerm.toLowerCase())
+    );
+
+    if (sortConfig) {
+      result.sort((a, b) => {
+        let aValue: any = a[sortConfig.key as keyof StockStatus];
+        let bValue: any = b[sortConfig.key as keyof StockStatus];
+        
+        // Handle undefined values
+        if (aValue === undefined) aValue = -Infinity;
+        if (bValue === undefined) bValue = -Infinity;
+        if (typeof aValue === 'string') aValue = aValue.toLowerCase();
+        if (typeof bValue === 'string') bValue = bValue.toLowerCase();
+
+        if (aValue < bValue) {
+          return sortConfig.direction === 'asc' ? -1 : 1;
+        }
+        if (aValue > bValue) {
+          return sortConfig.direction === 'asc' ? 1 : -1;
+        }
+        return 0;
+      });
+    }
+
+    return result;
+  }, [stockInventory, searchTerm, sortConfig]);
 
   const handleAddPurchase = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -208,12 +247,72 @@ export default function StockManager() {
           <table className="w-full text-left">
             <thead className="bg-slate-50 dark:bg-white/5 text-[10px] font-black uppercase text-slate-400 tracking-widest">
               <tr>
-                <th className="px-8 py-5">Item</th>
-                <th className="px-4 py-5 text-center">Estado</th>
-                <th className="px-4 py-5 text-right font-black">Stock Atual</th>
-                <th className="px-4 py-5 text-right text-slate-500 dark:text-slate-400">Preço Base</th>
-                <th className="px-4 py-5 text-right text-emerald-600 dark:text-emerald-400">PVP</th>
-                <th className="px-4 py-5 text-right text-purple-600 dark:text-purple-400">Lucro Unit.</th>
+                <th 
+                  className="px-8 py-5 cursor-pointer hover:bg-white/5 transition-colors group"
+                  onClick={() => handleSort('ref')}
+                >
+                  <div className="flex items-center gap-2">
+                    Item
+                    {sortConfig?.key === 'ref' ? (
+                      sortConfig.direction === 'asc' ? <ArrowUp className="w-3 h-3 text-purple-500" /> : <ArrowDown className="w-3 h-3 text-purple-500" />
+                    ) : <ArrowUpDown className="w-3 h-3 text-slate-300 opacity-0 group-hover:opacity-100 transition-opacity" />}
+                  </div>
+                </th>
+                <th 
+                    className="px-4 py-5 text-center cursor-pointer hover:bg-white/5 transition-colors group"
+                    onClick={() => handleSort('status')}
+                >
+                    <div className="flex items-center justify-center gap-2">
+                        Estado
+                        {sortConfig?.key === 'status' ? (
+                            sortConfig.direction === 'asc' ? <ArrowUp className="w-3 h-3 text-purple-500" /> : <ArrowDown className="w-3 h-3 text-purple-500" />
+                        ) : <ArrowUpDown className="w-3 h-3 text-slate-300 opacity-0 group-hover:opacity-100 transition-opacity" />}
+                    </div>
+                </th>
+                <th 
+                    className="px-4 py-5 text-right font-black cursor-pointer hover:bg-white/5 transition-colors group"
+                    onClick={() => handleSort('current_stock')}
+                >
+                    <div className="flex items-center justify-end gap-2">
+                        Stock Atual
+                        {sortConfig?.key === 'current_stock' ? (
+                            sortConfig.direction === 'asc' ? <ArrowUp className="w-3 h-3 text-purple-500" /> : <ArrowDown className="w-3 h-3 text-purple-500" />
+                        ) : <ArrowUpDown className="w-3 h-3 text-slate-300 opacity-0 group-hover:opacity-100 transition-opacity" />}
+                    </div>
+                </th>
+                <th 
+                    className="px-4 py-5 text-right text-slate-500 dark:text-slate-400 cursor-pointer hover:bg-white/5 transition-colors group"
+                    onClick={() => handleSort('base_price')}
+                >
+                    <div className="flex items-center justify-end gap-2">
+                        Preço Base
+                        {sortConfig?.key === 'base_price' ? (
+                            sortConfig.direction === 'asc' ? <ArrowUp className="w-3 h-3 text-purple-500" /> : <ArrowDown className="w-3 h-3 text-purple-500" />
+                        ) : <ArrowUpDown className="w-3 h-3 text-slate-300 opacity-0 group-hover:opacity-100 transition-opacity" />}
+                    </div>
+                </th>
+                <th 
+                    className="px-4 py-5 text-right text-emerald-600 dark:text-emerald-400 cursor-pointer hover:bg-white/5 transition-colors group"
+                    onClick={() => handleSort('pvp')}
+                >
+                    <div className="flex items-center justify-end gap-2">
+                        PVP
+                        {sortConfig?.key === 'pvp' ? (
+                            sortConfig.direction === 'asc' ? <ArrowUp className="w-3 h-3 text-purple-500" /> : <ArrowDown className="w-3 h-3 text-purple-500" />
+                        ) : <ArrowUpDown className="w-3 h-3 text-slate-300 opacity-0 group-hover:opacity-100 transition-opacity" />}
+                    </div>
+                </th>
+                <th 
+                    className="px-4 py-5 text-right text-purple-600 dark:text-purple-400 cursor-pointer hover:bg-white/5 transition-colors group"
+                    onClick={() => handleSort('profit')}
+                >
+                    <div className="flex items-center justify-end gap-2">
+                        Lucro Unit.
+                        {sortConfig?.key === 'profit' ? (
+                            sortConfig.direction === 'asc' ? <ArrowUp className="w-3 h-3 text-purple-500" /> : <ArrowDown className="w-3 h-3 text-purple-500" />
+                        ) : <ArrowUpDown className="w-3 h-3 text-slate-300 opacity-0 group-hover:opacity-100 transition-opacity" />}
+                    </div>
+                </th>
                 <th className="px-8 py-5 text-center">Ações</th>
               </tr>
             </thead>
