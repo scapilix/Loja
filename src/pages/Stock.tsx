@@ -62,7 +62,7 @@ export default function Stock() {
   const [isSyncing, setIsSyncing] = useState(false);
   const [lastSyncDate, setLastSyncDate] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<number | null>(null);
-  const [editQuantity, setEditQuantity] = useState<number>(0);
+  // const [editQuantity, setEditQuantity] = useState<number>(0); // Removed unused
   
   const [formData, setFormData] = useState({
     produto_nome: '',
@@ -370,6 +370,85 @@ export default function Stock() {
     }
   };
 
+  const resetDatabase = async () => {
+    if (!confirm('ATENÇÃO: Isto irá APAGAR TODO O STOCK e MOVIMENTOS da base de dados e reiniciar com zero quantidades baseadas no Excel. Tem a certeza?')) {
+        return;
+    }
+
+    const password = prompt('Para confirmar, digite "DELETAR"');
+    if (password !== 'DELETAR') {
+        alert('Cancelado.');
+        return;
+    }
+
+    setIsLoading(true);
+    try {
+        // 1. Delete all movements
+        const { error: errorMovements } = await supabase
+            .from('loja_stock_movimentos')
+            .delete()
+            .neq('id', 0); // Hack to delete all
+
+        if (errorMovements) throw errorMovements;
+
+        // 2. Delete all stock
+        const { error: errorStock } = await supabase
+            .from('loja_stock')
+            .delete()
+            .neq('id', 0); // Hack to delete all
+        
+        if (errorStock) throw errorStock;
+
+        // 3. Populate from orders
+        const uniqueProducts = new Map<string, { ref: string, name: string, price: number }>();
+        
+        orders.forEach((order: any) => {
+            const productName = order.produto;
+            // Try to find a ref if available in raw data, otherwise empty
+            // In the provided excel structure, we often just have product name
+            // We will use the product name as the unique key
+            if (!uniqueProducts.has(productName)) {
+                uniqueProducts.set(productName, {
+                    ref: order.ref || '',
+                    name: productName,
+                    price: order.pvp || 0 // Assuming pvp might be in order, or we default to 0
+                });
+            }
+        });
+
+        // Prepare insert data
+        const initialStock = Array.from(uniqueProducts.values()).map(p => ({
+            produto_nome: p.name,
+            ref: p.ref,
+            quantidade_atual: 0,
+            stock_minimo: 5,
+            preco_custo: 0,
+            preco_venda: p.price,
+            ultima_atualizacao: new Date().toISOString(),
+            data_compra: new Date().toISOString().split('T')[0]
+        }));
+
+        // Batch insert (supabase might reject large batches, doing chunks of 100 if needed, but for now try all)
+        if (initialStock.length > 0) {
+            const { error: insertError } = await supabase
+                .from('loja_stock')
+                .insert(initialStock);
+            
+            if (insertError) throw insertError;
+        }
+
+        alert('Base de dados reiniciada com sucesso!');
+        fetchStock();
+        fetchMovements();
+
+    } catch (err) {
+        console.error('CRITICAL ERROR RESETTING DB:', err);
+        alert('Erro ao reiniciar base de dados. Verifique a consola.');
+    } finally {
+        setIsLoading(false);
+    }
+  };
+
   const filteredStock = stockItems.filter(item => 
     item.produto_nome.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -424,6 +503,13 @@ export default function Stock() {
             >
                 <Plus className="w-4 h-4" />
                 Movimento
+            </button>
+            <button 
+                onClick={resetDatabase}
+                className="flex items-center gap-3 px-6 py-3 bg-red-600 hover:bg-red-700 text-white rounded-2xl font-black uppercase tracking-widest text-xs transition-all shadow-lg shadow-red-500/20 active:scale-95"
+            >
+                <AlertTriangle className="w-4 h-4" />
+                RESET DB
             </button>
         </div>
       </div>
@@ -541,7 +627,7 @@ export default function Stock() {
                           <span 
                             onClick={() => {
                               setEditingId(item.id!);
-                              setEditQuantity(item.quantidade_atual);
+                              // setEditQuantity(item.quantidade_atual);
                             }}
                             className="text-2xl font-black text-slate-950 dark:text-white cursor-pointer hover:text-purple-600 transition-colors"
                           >
