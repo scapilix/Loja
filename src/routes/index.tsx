@@ -4,6 +4,7 @@ import Overview from '../pages/Overview';
 import Clientes from '../pages/Clientes';
 import BaseClientes from '../pages/BaseClientes';
 import BaseItems from '../pages/BaseItems';
+import StockManager from '../pages/StockManager';
 import Produtos from '../pages/Produtos';
 import Rankings from '../pages/Rankings';
 import Portes from '../pages/Portes';
@@ -42,6 +43,7 @@ function AppRoutes() {
                 <Route path="clientes" element={<Clientes />} />
                 <Route path="base-clientes" element={<BaseClientes />} />
                 <Route path="base-itens" element={<BaseItems />} />
+                <Route path="stock-manager" element={<StockManager />} />
 
                 <Route path="produtos" element={<Produtos />} />
                 <Route path="rankings" element={<Rankings />} />

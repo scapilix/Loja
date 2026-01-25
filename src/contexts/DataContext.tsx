@@ -18,40 +18,87 @@ interface ExcelData {
   timestamp?: string;
 }
 
+import { supabase } from '../lib/supabase';
+
+interface Purchase {
+  id: number;
+  ref: string;
+  data_compra: string;
+  quantidade: number;
+  preco_custo?: number;
+  fornecedor?: string;
+  notas?: string;
+  created_at?: string;
+}
+
+interface ExcelData {
+  orders: any[];
+  customers: any[];
+  products_catalog?: ProductCatalogItem[];
+  purchases?: Purchase[];
+  stats?: any[];
+  timestamp?: string;
+}
+
 interface DataContextType {
   data: ExcelData;
   setData: React.Dispatch<React.SetStateAction<ExcelData>>;
   isLoading: boolean;
   setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
+  addPurchase: (purchase: Omit<Purchase, 'id' | 'created_at'>) => Promise<void>;
+  refreshPurchases: () => Promise<void>;
 }
 
 const DataContext = createContext<DataContextType | undefined>(undefined);
 
-const STORAGE_KEY = 'antigravity_data_v1';
+
 
 export function DataProvider({ children, initialData }: { children: ReactNode; initialData: ExcelData }) {
-  // Always start with initialData from the JSON file to ensure fresh data after a push
-  // Still keep a way to manually update via context
   const [data, setData] = useState<ExcelData>(initialData);
-  
   const [isLoading, setIsLoading] = useState(false);
 
-  // Sync state with initialData if it changes (e.g. after a rebuild)
+  // Sync state with initialData if it changes
   useEffect(() => {
-    setData(initialData);
+    setData((prev) => ({ ...prev, ...initialData }));
   }, [initialData]);
-  
-  // Optional: Save to localStorage as a secondary backup only
+
+  // Fetch Purchases from Supabase on Mount
   useEffect(() => {
+    fetchPurchases();
+  }, []);
+
+  const fetchPurchases = async () => {
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-    } catch (error) {
-      console.error('Failed to save data to localStorage:', error);
+      const { data: purchases, error } = await supabase
+        .from('loja_compras')
+        .select('*')
+        .order('data_compra', { ascending: false });
+      
+      if (error) throw error;
+
+      if (purchases) {
+        setData(prev => ({ ...prev, purchases }));
+      }
+    } catch (err) {
+      console.error('Error fetching purchases:', err);
     }
-  }, [data]);
+  };
+
+  const addPurchase = async (purchase: Omit<Purchase, 'id' | 'created_at'>) => {
+    try {
+      const { error } = await supabase.from('loja_compras').insert([purchase]);
+      if (error) throw error;
+      await fetchPurchases(); // Refresh local state
+    } catch (err) {
+      console.error('Error adding purchase:', err);
+      throw err;
+    }
+  };
+
+  const refreshPurchases = fetchPurchases;
 
   return (
-    <DataContext.Provider value={{ data, setData, isLoading, setIsLoading }}>
+    <DataContext.Provider value={{ data, setData, isLoading, setIsLoading, addPurchase, refreshPurchases }}>
       {children}
     </DataContext.Provider>
   );
