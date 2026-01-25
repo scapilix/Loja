@@ -84,6 +84,7 @@ try {
         customers: transformSheet(workbook, 'BD Clientes'),
         orders: transformSheet(workbook, 'Encomendas'),
         stock: transformSheet(workbook, 'STOCK MASTER'),
+        products_catalog: transformSheet(workbook, 'Valores Original'),
         stats: transformSheet(workbook, 'Estatisticas'),
         timestamp: new Date().toISOString()
     };

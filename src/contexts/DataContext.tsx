@@ -1,8 +1,18 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 
+interface ProductCatalogItem {
+  ref: string;
+  nome_artigo: string;
+  pvp_cica: number;
+  iva: number;
+  lucro_meu_faturado: number;
+  fornecedor: string;
+}
+
 interface ExcelData {
   orders: any[];
   customers: any[];
+  products_catalog?: ProductCatalogItem[];
   stats?: any[];
   timestamp?: string;
 }

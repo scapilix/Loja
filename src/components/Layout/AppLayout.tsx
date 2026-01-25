@@ -11,6 +11,7 @@ import {
   X,
   Truck,
   Database,
+  Tag,
   LogOut,
   ShieldCheck,
   KeyRound,
@@ -26,6 +27,7 @@ const navigation = [
   { id: 'overview', label: 'Overview', icon: LayoutDashboard, path: '/' },
   { id: 'clientes', label: 'Análise Clientes', icon: Users, path: '/clientes' },
   { id: 'base-clientes', label: 'Base Clientes', icon: Database, path: '/base-clientes' },
+  { id: 'base-itens', label: 'Base de Itens', icon: Tag, path: '/base-itens' },
 
   { id: 'produtos', label: 'Produtos', icon: Package, path: '/produtos' },
   { id: 'rankings', label: 'Rankings', icon: Trophy, path: '/rankings' },
