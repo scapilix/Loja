@@ -10,9 +10,16 @@ try {
         const sheet = workbook.Sheets[sheetName];
         const data = XLSX.utils.sheet_to_json(sheet, {header: 1}); // Array of arrays
         
-        console.log("Headers (Row 1):", data[0]);
-        console.log("First 5 rows:");
-        data.slice(0, 5).forEach((row, i) => console.log(`Row ${i}:`, row));
+        console.log("First 3 rows with indexes:");
+        data.slice(0, 3).forEach((row, rowIndex) => {
+            console.log(`\nRow ${rowIndex}:`);
+            row.forEach((cell, colIndex) => {
+                // Convert 0-based index to Excel Column Letter (A=0, B=1, etc.)
+                const colLetter = String.fromCharCode(65 + colIndex);
+                // Handle double letters if needed (simplified for A-Z)
+                console.log(`  [${colIndex} | ${colLetter}]: ${cell}`);
+            });
+        });
     }
 } catch (e) {
     console.error("Error:", e);

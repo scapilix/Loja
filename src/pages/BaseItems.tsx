@@ -87,6 +87,7 @@ export default function BaseItems() {
                 <th className="px-8 py-5">Referência</th>
                 <th className="px-4 py-5">Nome do Artigo</th>
                 <th className="px-4 py-5 text-right text-emerald-600 dark:text-emerald-400">PVP (c/ IVA)</th>
+                <th className="px-4 py-5 text-right text-slate-600 dark:text-slate-400">Preço Base</th>
                 <th className="px-4 py-5 text-right text-orange-600 dark:text-orange-400">Lucro</th>
                 <th className="px-8 py-5 text-right">IVA</th>
                 <th className="px-8 py-5 text-right">Fornecedor</th>
@@ -111,6 +112,11 @@ export default function BaseItems() {
                   <td className="px-4 py-4 text-right">
                     <span className="font-black text-sm text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20 px-2 py-1 rounded-lg">
                         {formatCurrency(product.pvp_cica)}
+                    </span>
+                  </td>
+                  <td className="px-4 py-4 text-right">
+                    <span className="font-bold text-sm text-slate-500 dark:text-slate-400">
+                        {formatCurrency(product.base_price || 0)}
                     </span>
                   </td>
                   <td className="px-4 py-4 text-right">

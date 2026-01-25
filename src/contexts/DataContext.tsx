@@ -4,6 +4,7 @@ interface ProductCatalogItem {
   ref: string;
   nome_artigo: string;
   pvp_cica: number;
+  base_price?: number;
   iva: number;
   lucro_meu_faturado: number;
   fornecedor: string;

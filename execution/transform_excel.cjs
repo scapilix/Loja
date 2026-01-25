@@ -66,6 +66,36 @@ function transformSheet(workbook, sheetName) {
         return groupedOrders;
     }
 
+    if (sheetName === 'VALORES ORIGINAL (4)') {
+        // Skip header row (Row 0)
+        return rows.map(row => {
+            const ref = row[1]; // Col B
+            if (!ref) return null;
+            
+            const refString = String(ref).trim();
+            const hasSSuffix = refString.toUpperCase().endsWith('S');
+            
+            // PVP Logic: If ends with S -> Col H (index 7), else Col G (index 6)
+            let pvp = hasSSuffix ? row[7] : row[6];
+            
+            // Fallback: If selected PVP is empty/0, try the other one just in case, or keep 0
+            if (!pvp && hasSSuffix) pvp = row[6]; 
+            if (!pvp && !hasSSuffix) pvp = row[7];
+            
+            return {
+                ref: refString,
+                nome_artigo: row[2], // Col C
+                category: row[3], // Col D
+                stock: row[4], // Col E
+                pvp_cica: typeof pvp === 'number' ? pvp : parseFloat(String(pvp || 0).replace(/[^0-9.-]+/g, "")),
+                iva: row[11], // Col L
+                lucro_meu_faturado: row[13], // Col N
+                base_price: row[10], // Col K (BASE)
+                fornecedor: row[16] // Col Q
+            };
+        }).filter(item => item !== null && item.ref !== 'REF'); // Filter out empty or header repetition
+    }
+
     // Default transform for other sheets
     return rows.map(row => {
         const obj = {};
@@ -84,7 +114,7 @@ try {
         customers: transformSheet(workbook, 'BD Clientes'),
         orders: transformSheet(workbook, 'Encomendas'),
         stock: transformSheet(workbook, 'STOCK MASTER'),
-        products_catalog: transformSheet(workbook, 'Valores Original'),
+        products_catalog: transformSheet(workbook, 'VALORES ORIGINAL (4)'),
         stats: transformSheet(workbook, 'Estatisticas'),
         timestamp: new Date().toISOString()
     };
