@@ -487,7 +487,7 @@ export default function Faturas() {
                         <input type="number" readOnly value={formData.valor_sem_iva} className="w-full px-4 py-4 bg-slate-100 dark:bg-white/5 border rounded-2xl text-sm font-bold opacity-60" />
                     </div>
                     <div className="space-y-2">
-                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">IVA ({formData.taxa_iva}%)</label>
+                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">% IVA</label>
                         <input type="number" readOnly value={formData.valor_iva} className="w-full px-4 py-4 bg-slate-100 dark:bg-white/5 border rounded-2xl text-sm font-bold opacity-60" />
                     </div>
                  </div>
