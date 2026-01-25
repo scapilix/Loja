@@ -29,8 +29,8 @@ export default function StockManager() {
   });
 
   const filteredStock = stockInventory.filter(item => 
-    item.ref.includes(searchTerm.toUpperCase()) || 
-    item.name.toLowerCase().includes(searchTerm.toLowerCase())
+    (item.ref || '').includes(searchTerm.toUpperCase()) || 
+    (item.name || '').toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const handleAddPurchase = async (e: React.FormEvent) => {
@@ -246,17 +246,48 @@ export default function StockManager() {
               </div>
 
               <form onSubmit={handleAddPurchase} className="p-8 space-y-6">
-                 <div className="space-y-2">
-                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Referência</label>
+                 {/* Autocomplete for Reference */}
+                 <div className="space-y-2 relative">
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Referência / Produto</label>
                     <input 
                         type="text" 
                         required 
                         value={formData.ref} 
                         onChange={(e) => setFormData({...formData, ref: e.target.value})} 
-                        className="w-full px-4 py-4 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-2xl focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm font-bold uppercase"
-                        placeholder="Ex: REF123"
+                        className="w-full px-4 py-4 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-2xl focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm font-bold uppercase transition-all"
+                        placeholder="Comece a escrever para pesquisar..."
+                        autoComplete="off"
                     />
+                    
+                    {/* Suggestions list */}
+                    {formData.ref.length > 1 && !stockInventory.find(s => s.ref === formData.ref) && (
+                        <div className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-slate-100 dark:border-white/10 z-50 max-h-60 overflow-y-auto">
+                            {stockInventory
+                                .filter(item => 
+                                    item.ref.includes(formData.ref.toUpperCase()) || 
+                                    (item.name || '').toLowerCase().includes(formData.ref.toLowerCase())
+                                )
+                                .slice(0, 5)
+                                .map(suggestion => (
+                                    <button
+                                        key={suggestion.ref}
+                                        type="button"
+                                        onClick={() => setFormData({
+                                            ...formData, 
+                                            ref: suggestion.ref,
+                                            fornecedor: suggestion.supplier || formData.fornecedor
+                                        })}
+                                        className="w-full text-left px-4 py-3 hover:bg-slate-50 dark:hover:bg-white/5 flex flex-col border-b border-slate-50 dark:border-white/5 last:border-0"
+                                    >
+                                        <span className="font-black text-xs text-slate-900 dark:text-white">{suggestion.ref}</span>
+                                        <span className="text-[10px] text-slate-500 truncate">{suggestion.name}</span>
+                                    </button>
+                                ))
+                            }
+                        </div>
+                    )}
                  </div>
+
                  <div className="grid grid-cols-2 gap-4">
                      <div className="space-y-2">
                         <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Quantidade</label>

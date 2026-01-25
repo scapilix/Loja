@@ -77,7 +77,7 @@ export function useStockLogic() {
       
       // Get Details from Catalog
       const catalogItem = data.products_catalog?.find(p => String(p.ref).trim().toUpperCase() === ref);
-      const name = catalogItem ? catalogItem.nome_artigo : 'Item Desconhecido';
+      const name = catalogItem && catalogItem.nome_artigo ? catalogItem.nome_artigo : 'Item Desconhecido';
       const basePrice = catalogItem ? catalogItem.base_price : undefined;
       const supplier = catalogItem ? catalogItem.fornecedor : undefined;
 
