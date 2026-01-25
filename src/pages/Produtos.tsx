@@ -5,7 +5,6 @@ import { useDashboardData } from '../hooks/useDashboardData';
 import { useFilters } from '../contexts/FilterContext';
 import { KpiCard } from '../components/KpiCard';
 import { TopProdutos } from '../components/TopProdutos';
-import { StockAnalysis } from '../components/StockAnalysis';
 import { SmartDateFilter } from '../components/SmartDateFilter';
 
 const pageVariants = {
@@ -198,8 +197,7 @@ function Produtos() {
         <TopProdutos products={topProducts} />
       </div>
 
-      {/* Stock Analysis */}
-      <StockAnalysis />
+
     </motion.div>
   );
 }

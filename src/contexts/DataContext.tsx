@@ -3,7 +3,6 @@ import React, { createContext, useContext, useState, useEffect, ReactNode } from
 interface ExcelData {
   orders: any[];
   customers: any[];
-  stock?: any[];
   stats?: any[];
   timestamp?: string;
 }

@@ -38,7 +38,7 @@ interface Fatura {
   created_at?: string;
 }
 
-const CATEGORIES = ['Despesa/Compras', 'Serviços', 'Stock', 'Outros'];
+const CATEGORIES = ['Despesa/Compras', 'Serviços', 'Outros'];
 const INVOICE_TYPES = ['Compras', 'Vendas', 'Despesas'];
 const IVA_RATES = [
   { label: '6%', value: 6 },

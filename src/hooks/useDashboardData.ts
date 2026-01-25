@@ -149,7 +149,6 @@ export const useDashboardData = (filters: DashboardFilters = {}): DashboardMetri
       revenue: number; 
       quantity: number; 
       ref: string;
-      stock?: number;
     }> = {};
 
     // Shipping Metrics Initial State
@@ -280,15 +279,11 @@ export const useDashboardData = (filters: DashboardFilters = {}): DashboardMetri
             const itemRef = String(item.ref);
 
             if (!productPerformance[itemRef]) {
-              // Find stock for this product
-              const stockItem = rawData.stock?.find((s: any) => s.ref === item.ref);
-              
               productPerformance[itemRef] = {
                 name: item.designacao || 'Unknown Product',
                 revenue: 0,
                 quantity: 0,
-                ref: itemRef,
-                stock: stockItem ? Number(stockItem.stock_atual) : 0
+                ref: itemRef
               };
             }
 
