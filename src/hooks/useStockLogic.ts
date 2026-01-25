@@ -9,6 +9,8 @@ export interface StockStatus {
   current_stock: number;
   status: 'ok' | 'low' | 'critical' | 'out';
   base_price?: number;
+  pvp?: number;
+  profit?: number;
   supplier?: string;
   last_purchase_date?: string;
 }
@@ -79,6 +81,8 @@ export function useStockLogic() {
       const catalogItem = data.products_catalog?.find(p => String(p.ref).trim().toUpperCase() === ref);
       const name = catalogItem && catalogItem.nome_artigo ? catalogItem.nome_artigo : 'Item Desconhecido';
       const basePrice = catalogItem ? catalogItem.base_price : undefined;
+      const pvp = catalogItem ? catalogItem.pvp_cica : undefined;
+      const profit = catalogItem ? catalogItem.lucro_meu_faturado : undefined;
       const supplier = catalogItem ? catalogItem.fornecedor : undefined;
 
       // Determine Status
@@ -95,6 +99,8 @@ export function useStockLogic() {
         current_stock: currentStock,
         status,
         base_price: basePrice,
+        pvp,
+        profit,
         supplier,
         last_purchase_date: purchaseData.lastDate
       });

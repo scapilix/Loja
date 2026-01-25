@@ -1,24 +1,48 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
-  Package, 
   Plus, 
   Search, 
   TrendingDown, 
+  TrendingUp,
   AlertTriangle, 
   CheckCircle2,
   X,
-  History
+  Coins,
+  Wallet,
+  Banknote
 } from 'lucide-react';
 import { useStockLogic, StockStatus } from '../hooks/useStockLogic';
 import { useData } from '../contexts/DataContext';
 
 export default function StockManager() {
   const stockInventory = useStockLogic();
-  const { addPurchase, data } = useData();
+  const { addPurchase } = useData();
   const [searchTerm, setSearchTerm] = useState('');
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Financial Calculations
+  const stockFinancials = useMemo(() => {
+    let totalStockValueBase = 0; // Total Cost of goods in stock
+    let totalStockValuePVP = 0;  // Potential Revenue
+    let totalPotentialProfit = 0; // Potential Profit
+
+    stockInventory.forEach(item => {
+      // Only count positive stock for valuation
+      if (item.current_stock > 0) {
+        totalStockValueBase += (item.base_price || 0) * item.current_stock;
+        totalStockValuePVP += (item.pvp || 0) * item.current_stock;
+        totalPotentialProfit += (item.profit || 0) * item.current_stock;
+      }
+    });
+
+    return { totalStockValueBase, totalStockValuePVP, totalPotentialProfit };
+  }, [stockInventory]);
+
+  const formatCurrency = (val: number) => {
+    return new Intl.NumberFormat('pt-PT', { style: 'currency', currency: 'EUR' }).format(val);
+  };
 
   const [formData, setFormData] = useState({
     ref: '',
@@ -118,50 +142,65 @@ export default function StockManager() {
         </div>
       </div>
 
-      {/* KPI Summary */}
+      {/* Financial Summary & KPI */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        <div className="glass p-6 rounded-3xl border-slate-100 dark:border-white/5 flex items-center gap-4">
-             <div className="w-12 h-12 rounded-2xl bg-emerald-50 dark:bg-emerald-500/10 flex items-center justify-center text-emerald-600 dark:text-emerald-400">
-                <Package className="w-6 h-6" />
+        
+        {/* Total Stock Value (Cost) */}
+        <div className="glass p-6 rounded-3xl border-slate-100 dark:border-white/5 flex items-center gap-4 relative overflow-hidden group">
+             <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-cyan-500/5 opacity-0 group-hover:opacity-100 transition-opacity" />
+             <div className="w-12 h-12 rounded-2xl bg-blue-50 dark:bg-blue-500/10 flex items-center justify-center text-blue-600 dark:text-blue-400 z-10">
+                <Wallet className="w-6 h-6" />
              </div>
-             <div>
-                <p className="text-xs font-black text-slate-400 uppercase tracking-wider">Total Itens</p>
-                <h3 className="text-2xl font-black text-slate-950 dark:text-white">{stockInventory.length}</h3>
+             <div className="z-10">
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Valor em Stock (Custo)</p>
+                <h3 className="text-xl font-black text-slate-900 dark:text-white">
+                    {formatCurrency(stockFinancials.totalStockValueBase)}
+                </h3>
              </div>
         </div>
+
+        {/* Potential Revenue */}
+        <div className="glass p-6 rounded-3xl border-slate-100 dark:border-white/5 flex items-center gap-4 relative overflow-hidden group">
+             <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/5 to-teal-500/5 opacity-0 group-hover:opacity-100 transition-opacity" />
+             <div className="w-12 h-12 rounded-2xl bg-emerald-50 dark:bg-emerald-500/10 flex items-center justify-center text-emerald-600 dark:text-emerald-400 z-10">
+                <Banknote className="w-6 h-6" />
+             </div>
+             <div className="z-10">
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Potencial Venda</p>
+                <h3 className="text-xl font-black text-slate-900 dark:text-white">
+                    {formatCurrency(stockFinancials.totalStockValuePVP)}
+                </h3>
+             </div>
+        </div>
+
+        {/* Potential Profit */}
+        <div className="glass p-6 rounded-3xl border-slate-100 dark:border-white/5 flex items-center gap-4 relative overflow-hidden group">
+             <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 to-pink-500/5 opacity-0 group-hover:opacity-100 transition-opacity" />
+             <div className="w-12 h-12 rounded-2xl bg-purple-50 dark:bg-purple-500/10 flex items-center justify-center text-purple-600 dark:text-purple-400 z-10">
+                <Coins className="w-6 h-6" />
+             </div>
+             <div className="z-10">
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Lucro Previsto</p>
+                <h3 className="text-xl font-black text-slate-900 dark:text-white">
+                    {formatCurrency(stockFinancials.totalPotentialProfit)}
+                </h3>
+             </div>
+        </div>
+
+        {/* Stock Alerts (Combined) */}
         <div className="glass p-6 rounded-3xl border-slate-100 dark:border-white/5 flex items-center gap-4">
              <div className="w-12 h-12 rounded-2xl bg-rose-50 dark:bg-rose-500/10 flex items-center justify-center text-rose-600 dark:text-rose-400">
                 <AlertTriangle className="w-6 h-6" />
              </div>
              <div>
-                <p className="text-xs font-black text-slate-400 uppercase tracking-wider">Sem Stock</p>
-                <h3 className="text-2xl font-black text-slate-950 dark:text-white">
-                    {stockInventory.filter(i => i.status === 'out').length}
-                </h3>
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Atenção</p>
+                <div className="flex gap-3 text-xs font-bold mt-1">
+                    <span className="text-rose-500">{stockInventory.filter(i => i.status === 'out').length} Esgotados</span>
+                    <span className="text-orange-500">{stockInventory.filter(i => i.status === 'critical').length} Críticos</span>
+                </div>
              </div>
         </div>
-        <div className="glass p-6 rounded-3xl border-slate-100 dark:border-white/5 flex items-center gap-4">
-             <div className="w-12 h-12 rounded-2xl bg-amber-50 dark:bg-amber-500/10 flex items-center justify-center text-amber-600 dark:text-amber-400">
-                <TrendingDown className="w-6 h-6" />
-             </div>
-             <div>
-                <p className="text-xs font-black text-slate-400 uppercase tracking-wider">Critico</p>
-                <h3 className="text-2xl font-black text-slate-950 dark:text-white">
-                    {stockInventory.filter(i => i.status === 'critical').length}
-                </h3>
-             </div>
-        </div>
-        <div className="glass p-6 rounded-3xl border-slate-100 dark:border-white/5 flex items-center gap-4">
-             <div className="w-12 h-12 rounded-2xl bg-purple-50 dark:bg-purple-500/10 flex items-center justify-center text-purple-600 dark:text-purple-400">
-                <History className="w-6 h-6" />
-             </div>
-             <div>
-                <p className="text-xs font-black text-slate-400 uppercase tracking-wider">Movimentos</p>
-                <h3 className="text-2xl font-black text-slate-950 dark:text-white">
-                    {data.purchases?.length || 0}
-                </h3>
-             </div>
-        </div>
+
       </div>
 
       <div className="glass rounded-[2.5rem] overflow-hidden border-slate-100 dark:border-white/5 shadow-xl">
@@ -171,10 +210,10 @@ export default function StockManager() {
               <tr>
                 <th className="px-8 py-5">Item</th>
                 <th className="px-4 py-5 text-center">Estado</th>
-                <th className="px-4 py-5 text-right text-emerald-600 dark:text-emerald-400 bg-emerald-50/50 dark:bg-emerald-900/5">Comprado</th>
-                <th className="px-4 py-5 text-right text-rose-600 dark:text-rose-400 bg-rose-50/50 dark:bg-rose-900/5">Vendido</th>
                 <th className="px-4 py-5 text-right font-black">Stock Atual</th>
-                <th className="px-4 py-5 text-right">Última Compra</th>
+                <th className="px-4 py-5 text-right text-slate-500 dark:text-slate-400">Preço Base</th>
+                <th className="px-4 py-5 text-right text-emerald-600 dark:text-emerald-400">PVP</th>
+                <th className="px-4 py-5 text-right text-purple-600 dark:text-purple-400">Lucro Unit.</th>
                 <th className="px-8 py-5 text-center">Ações</th>
               </tr>
             </thead>
@@ -195,19 +234,33 @@ export default function StockManager() {
                         </span>
                     </div>
                   </td>
-                  <td className="px-4 py-4 text-right bg-emerald-50/30 dark:bg-emerald-900/5">
-                    <span className="font-bold text-emerald-600 dark:text-emerald-400">{item.total_purchased}</span>
-                  </td>
-                  <td className="px-4 py-4 text-right bg-rose-50/30 dark:bg-rose-900/5">
-                    <span className="font-bold text-rose-600 dark:text-rose-400">{item.total_sold}</span>
-                  </td>
                   <td className="px-4 py-4 text-right">
-                    <span className={`text-lg font-black ${item.current_stock <= 0 ? 'text-rose-500' : 'text-slate-900 dark:text-white'}`}>
+                    <span className={`text-lg font-black ${item.current_stock <= 0 ? 'text-slate-400' : 'text-slate-900 dark:text-white'}`}>
                         {item.current_stock}
                     </span>
+                    {item.current_stock > 0 && item.total_purchased > 0 && (
+                        <div className="text-[10px] text-slate-400 font-medium">
+                            Comp: <span className="text-emerald-500">{item.total_purchased}</span> • Vend: <span className="text-rose-500">{item.total_sold}</span>
+                        </div>
+                    )}
                   </td>
-                  <td className="px-4 py-4 text-right text-xs text-slate-500 font-bold">
-                    {item.last_purchase_date ? new Date(item.last_purchase_date).toLocaleDateString() : '-'}
+                  <td className="px-4 py-4 text-right">
+                    <span className="font-medium text-sm text-slate-500 dark:text-slate-400">
+                        {item.base_price ? formatCurrency(item.base_price) : '-'}
+                    </span>
+                  </td>
+                  <td className="px-4 py-4 text-right">
+                    <span className="font-bold text-sm text-emerald-600 dark:text-emerald-400">
+                        {item.pvp ? formatCurrency(item.pvp) : '-'}
+                    </span>
+                  </td>
+                  <td className="px-4 py-4 text-right">
+                    <div className="flex items-center justify-end gap-1">
+                        {item.profit && item.profit > 0 ? <TrendingUp className="w-3 h-3 text-purple-500" /> : null}
+                        <span className="font-bold text-sm text-purple-600 dark:text-purple-400">
+                            {item.profit ? formatCurrency(item.profit) : '-'}
+                        </span>
+                    </div>
                   </td>
                   <td className="px-8 py-4 text-center">
                     <button 
