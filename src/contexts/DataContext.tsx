@@ -62,10 +62,39 @@ export function DataProvider({ children, initialData }: { children: ReactNode; i
     setData((prev) => ({ ...prev, ...initialData }));
   }, [initialData]);
 
-  // Fetch Purchases from Supabase on Mount
+  // Fetch Purchases and Imported State from Supabase on Mount
   useEffect(() => {
-    fetchPurchases();
+    const initData = async () => {
+        setIsLoading(true);
+        await Promise.all([fetchPurchases(), fetchImportedState()]);
+        setIsLoading(false);
+    };
+    initData();
   }, []);
+
+  const fetchImportedState = async () => {
+    try {
+        const { data: stateData, error } = await supabase
+            .from('loja_app_state')
+            .select('key, value')
+            .in('key', ['import_orders', 'import_customers', 'import_stats']);
+        
+        if (stateData && !error) {
+            const updates: Partial<ExcelData> = {};
+            stateData.forEach(item => {
+                if (item.key === 'import_orders') updates.orders = item.value;
+                if (item.key === 'import_customers') updates.customers = item.value;
+                if (item.key === 'import_stats') updates.stats = item.value;
+            });
+            
+            if (Object.keys(updates).length > 0) {
+                setData(prev => ({ ...prev, ...updates }));
+            }
+        }
+    } catch (err) {
+        console.error('Error fetching imported state:', err);
+    }
+  };
 
   const fetchPurchases = async () => {
     try {

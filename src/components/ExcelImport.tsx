@@ -174,12 +174,38 @@ export function ExcelImport({ onDataImported, variant = 'floating' }: ExcelImpor
         timestamp: new Date().toISOString()
       };
 
-      // Sync product catalog from VALORES ORIGINAL (does not sync quantities)
+      // 1. Sync product catalog from VALORES ORIGINAL (updates products table)
       if (transformedData.stock && transformedData.stock.length > 0) {
         await syncProductCatalog(transformedData.stock);
       }
 
-      // Call the callback with processed data
+      // 2. Persist App State (Orders, Customers, Stats) to Supabase Key-Value Store
+      // This ensures data survives page reloads
+      try {
+        setMessage('A guardar na nuvem...');
+        const updates = [
+          { key: 'import_orders', value: transformedData.orders },
+          { key: 'import_customers', value: transformedData.customers },
+          { key: 'import_stats', value: transformedData.stats }
+        ];
+
+        // Upsert all keys
+        for (const update of updates) {
+           await supabase
+            .from('loja_app_state')
+            .upsert({ 
+                key: update.key, 
+                value: update.value, 
+                updated_at: new Date().toISOString() 
+            });
+        }
+        console.log('✓ Dados persistidos na nuvem');
+      } catch (err) {
+        console.error('Erro ao guardar estado:', err);
+        // We continue even if save fails, so user can work temporarily
+      }
+
+      // 3. Call callback to update local state
       onDataImported(transformedData);
 
       const orderCount = transformedData.orders.length;
