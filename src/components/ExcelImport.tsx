@@ -88,7 +88,13 @@ export function ExcelImport({ onDataImported, variant = 'floating' }: ExcelImpor
 
     try {
       const data = await file.arrayBuffer();
-      const workbook = XLSX.read(data, { cellDates: true });
+      const workbook = XLSX.read(data, { 
+        dense: true, // Use dense mode for better memory usage
+        cellDates: true, // Keep safe date parsing
+        cellStyles: false, // Don't parse styles
+        cellFormula: false, // Don't parse formulas (use cached values)
+        cellHTML: false // Don't parse HTML
+      });
 
       // Helper function to clean headers
       const cleanHeader = (header: any): string | null => {
