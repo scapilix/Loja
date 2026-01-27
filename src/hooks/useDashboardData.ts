@@ -120,11 +120,20 @@ export const useDashboardData = (filters: DashboardFilters = {}): DashboardMetri
     const regionMap: Record<string, number> = {};
     const monthlyMap: Record<string, number> = {};
     // Prepare customer lookup map from database
-    const customerDbMap = new Map();
+    // Prepare customer lookup maps from database
+    const customerDbMap = new Map(); // Key: Instagram
+    const customerNameMap = new Map(); // Key: Name (for fallback lookup)
+
     if (rawData.customers && Array.isArray(rawData.customers)) {
         rawData.customers.forEach((c: any) => {
-            if (c.nome_cliente) {
-                customerDbMap.set(c.nome_cliente.trim().toUpperCase(), c);
+            const name = c.nome_cliente ? c.nome_cliente.trim().toUpperCase() : '';
+            if (name) {
+                customerNameMap.set(name, c);
+            }
+
+            if (c.instagram && c.instagram !== 'N/A' && c.instagram !== '-') {
+                const cleanInsta = c.instagram.trim().toUpperCase().replace('@', '');
+                customerDbMap.set(cleanInsta, c);
             }
         });
     }
@@ -187,33 +196,56 @@ export const useDashboardData = (filters: DashboardFilters = {}): DashboardMetri
       monthlyMap[month] = (monthlyMap[month] || 0) + pvp;
 
       // Customer data
-      const normalizedCustomerName = customer.trim().toUpperCase();
+      // Customer data
+      const rawInsta = (instagram || '').trim();
+      const hasInsta = rawInsta && rawInsta !== 'N/A' && rawInsta !== '-';
+      const cleanInsta = hasInsta ? rawInsta.toUpperCase().replace('@', '') : '';
+      const cleanName = customer.trim().toUpperCase();
+
+      // Determine Unique Key
+      // Priority 1: Instagram from Order
+      // Priority 2: Instagram from DB (lookup by Name)
+      // Priority 3: Name (Fallback)
       
-      if (!customerMap[normalizedCustomerName]) {
-        // Try to find in DB
-        const dbCustomer = customerDbMap.get(normalizedCustomerName);
-        
-        customerMap[normalizedCustomerName] = { 
+      let customerKey = '';
+      let resolvedInsta = hasInsta ? cleanInsta : '';
+      let dbCustomer: any = null;
+
+      if (resolvedInsta) {
+          customerKey = resolvedInsta;
+          dbCustomer = customerDbMap.get(resolvedInsta);
+      } else {
+          // STRICT RULE: Do not try to find instagram via name for ID generation.
+          // This prevents merging "Joana (No Insta)" into "Joana A" or "Joana B" indiscriminately.
+          // Orders with N/A instagram will separate into their own "NAME:..." group.
+          customerKey = `NAME:${cleanName}`;
+          
+          // We can still try to find metadata for display purposes later, but the ID is strictly Name-based.
+          // If we want to be helpful, we can check if this Name maps to a SINGLE unique Instagram in DB.
+          // But user says "Names can be equal", so assuming identity by Name is dangerous.
+      }
+      
+      if (!customerMap[customerKey]) {
+        customerMap[customerKey] = { 
           revenue: 0, 
           orders: 0,
-          instagram: dbCustomer?.instagram || instagram,
+          instagram: resolvedInsta ? (dbCustomer?.instagram || instagram) : 'N/A', // Keep display format
           address: dbCustomer?.morada || region,
           history: []
         };
       }
       
-      customerMap[normalizedCustomerName].revenue += pvp;
-      customerMap[normalizedCustomerName].orders += 1;
-      customerMap[normalizedCustomerName].history.push(order);
+      customerMap[customerKey].revenue += pvp;
+      customerMap[customerKey].orders += 1;
+      customerMap[customerKey].history.push(order);
       
-      // Update contact info if previous one was N/A but strictly respecting DB as priority?
-      // Actually DB was prioritized in initialization. Just fallback updates here.
-      if (customerMap[normalizedCustomerName].instagram === 'N/A' && instagram !== 'N/A') {
-        customerMap[normalizedCustomerName].instagram = instagram;
+      // Update info if it was missing and we found better info (e.g. from a subsequent order)
+      if (customerMap[customerKey].instagram === 'N/A' && hasInsta) {
+         customerMap[customerKey].instagram = instagram;
       }
       
       // Customer sales count using same key
-      customerSalesCount[normalizedCustomerName] = (customerSalesCount[normalizedCustomerName] || 0) + 1;
+      customerSalesCount[customerKey] = (customerSalesCount[customerKey] || 0) + 1;
 
       // Location data
       if (!locationMap[region]) {
@@ -309,42 +341,67 @@ export const useDashboardData = (filters: DashboardFilters = {}): DashboardMetri
       .slice(0, 8);
 
     // All Customers List (New Implementation)
-    // First, start with everything in the DB
-    const allCustomers = (rawData.customers || []).map((dbC: any) => {
-      const name = (dbC.nome_cliente || 'N/A').trim();
-      const normName = name.toUpperCase();
-      const salesData = customerMap[normName] || { revenue: 0, orders: 0, instagram: 'N/A', address: dbC.morada || '-', history: [] };
+    // We iterate the customerMap (Active Sales) + Filtered DB Customers
+    
+    // 1. Convert Sales Map to List
+    const activeCustomers = Object.entries(customerMap).map(([key, data]) => {
+      // Find the best display name
+      // Try DB match first
+      let dbC = null;
+      if (key.startsWith('NAME:')) {
+          const namePart = key.replace('NAME:', '');
+          dbC = customerNameMap.get(namePart);
+      } else {
+          dbC = customerDbMap.get(key); // key is instagram
+      }
+
+      const displayName = dbC?.nome_cliente || data.history[0]?.nome_cliente || 'Sem Nome';
       
       return {
-        name: dbC.nome_cliente || 'Sem Nome',
-        revenue: salesData.revenue,
-        orders: salesData.orders,
-        instagram: dbC.instagram || salesData.instagram || '-',
-        address: dbC.morada || salesData.address || '-',
-        email: dbC.email_cliente || '-',
-        phone: dbC.telefone_cliente || '-',
-        history: salesData.history
+        name: displayName,
+        revenue: data.revenue,
+        orders: data.orders,
+        instagram: dbC?.instagram || data.instagram || '-',
+        address: dbC?.morada || data.address || '-',
+        email: dbC?.email_cliente || '-',
+        phone: dbC?.telefone_cliente || '-',
+        history: data.history,
+        _key: key, // internal use for dedup logic
+        _source: 'ACTIVE_ORDER'
       };
     });
 
-    // Add any customers found in orders but NOT in DB (safety check)
-    const dbNames = new Set((rawData.customers || []).map((c: any) => (c.nome_cliente || '').trim().toUpperCase()));
-    Object.entries(customerMap).forEach(([name, data]) => {
-      if (!dbNames.has(name)) {
-        allCustomers.push({
-          name: data.history[0]?.nome_cliente || name,
-          revenue: data.revenue,
-          orders: data.orders,
-          instagram: data.instagram,
-          address: data.address,
-          email: '-',
-          phone: '-',
-          history: data.history
-        });
-      }
+    // 2. Add customers from DB that had NO sales
+    const processedKeys = new Set(activeCustomers.map(c => c._key));
+    
+    (rawData.customers || []).forEach((dbC: any) => {
+        let key = '';
+        if (dbC.instagram && dbC.instagram !== 'N/A' && dbC.instagram !== '-') {
+            key = dbC.instagram.trim().toUpperCase().replace('@', '');
+        } else if (dbC.nome_cliente) {
+            key = `NAME:${dbC.nome_cliente.trim().toUpperCase()}`;
+        }
+
+        if (key && !processedKeys.has(key)) {
+            // Add inactive customer
+            activeCustomers.push({
+                name: dbC.nome_cliente || 'Sem Nome',
+                revenue: 0,
+                orders: 0,
+                instagram: dbC.instagram || '-',
+                address: dbC.morada || '-',
+                email: dbC.email_cliente || '-',
+                phone: dbC.telefone_cliente || '-',
+                history: [],
+                _key: key,
+                _source: 'DB_INACTIVE'
+            });
+            processedKeys.add(key); // Prevent dual adding if DB has duplicates
+        }
     });
 
-    allCustomers.sort((a, b) => b.revenue - a.revenue);
+    // Sort by revenue
+    const allCustomers = activeCustomers.sort((a, b) => b.revenue - a.revenue);
 
     // Top customers (top 5)
     const topCustomers = allCustomers

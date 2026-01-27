@@ -3,7 +3,7 @@ import { TrendingUp, Award } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 interface TopClientesProps {
-  customers: { name: string; revenue: number; orders: number; percentage: number }[];
+  customers: { name: string; revenue: number; orders: number; percentage: number; instagram?: string }[];
 }
 
 export const TopClientes: React.FC<TopClientesProps> = ({ customers }) => {
@@ -36,7 +36,7 @@ export const TopClientes: React.FC<TopClientesProps> = ({ customers }) => {
 
       <div className="space-y-5">
         {customers.map((customer, index) => (
-          <div key={customer.name} className="group">
+          <div key={`${customer.instagram || customer.name}-${index}`} className="group">
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-3">
                 <div className={`
