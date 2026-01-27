@@ -205,9 +205,9 @@ export default function Faturas() {
   })).filter(c => c.value > 0);
 
   const filteredFaturas = filteredByType.filter(f => 
-    f.entidade.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    f.numero_fatura.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    f.nif.includes(searchTerm)
+    String(f.entidade || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+    String(f.numero_fatura || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+    String(f.nif || '').includes(searchTerm)
   );
 
   const formatCurrency = (val: number) =>

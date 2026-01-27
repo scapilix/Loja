@@ -33,13 +33,16 @@ export default function BaseClientes() {
   };
 
   // Filter based on search term
-  const displayedCustomers = allCustomers.filter(customer => 
-    customer.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-    customer.address.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    customer.instagram.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    customer.phone.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    customer.email.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const displayedCustomers = allCustomers.filter(customer => {
+    const search = searchTerm.toLowerCase();
+    return (
+      String(customer.name || '').toLowerCase().includes(search) || 
+      String(customer.address || '').toLowerCase().includes(search) ||
+      String(customer.instagram || '').toLowerCase().includes(search) ||
+      String(customer.phone || '').toLowerCase().includes(search) ||
+      String(customer.email || '').toLowerCase().includes(search)
+    );
+  });
 
   return (
     <motion.div
@@ -128,16 +131,16 @@ export default function BaseClientes() {
                     <div className="flex items-center gap-2">
                         {/* Status Indicator */}
                        <div className={`w-1 h-8 absolute left-0 top-1/2 -translate-y-1/2 rounded-r-full transition-all duration-300 ${
-                           customer.orders > 5 ? 'bg-purple-500 h-10' : 
-                           customer.orders > 2 ? 'bg-blue-400 h-6' : 
+                           (customer.orders || 0) > 5 ? 'bg-purple-500 h-10' : 
+                           (customer.orders || 0) > 2 ? 'bg-blue-400 h-6' : 
                            'bg-slate-300 h-4'
                        } opacity-0 group-hover:opacity-100`} />
                        
                       <div className="flex-shrink-0 h-8 w-8 rounded-full bg-gradient-to-br from-purple-500 to-indigo-500 flex items-center justify-center text-white font-bold text-xs shadow-sm">
-                        {customer.name.substring(0, 2).toUpperCase()}
+                        {String(customer.name || '?').substring(0, 2).toUpperCase()}
                       </div>
-                      <div className="font-bold text-slate-900 dark:text-white truncate max-w-[150px]" title={customer.name}>
-                        {customer.name}
+                      <div className="font-bold text-slate-900 dark:text-white truncate max-w-[150px]" title={customer.name || ''}>
+                        {customer.name || 'Sem Nome'}
                       </div>
                     </div>
                   </td>
