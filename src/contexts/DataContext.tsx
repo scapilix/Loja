@@ -15,6 +15,7 @@ interface ExcelData {
   customers: any[];
   products_catalog?: ProductCatalogItem[];
   stats?: any[];
+  manual_products_catalog?: ProductCatalogItem[]; // Items added manually via UI
   timestamp?: string;
 }
 
@@ -37,6 +38,7 @@ interface ExcelData {
   products_catalog?: ProductCatalogItem[];
   purchases?: Purchase[];
   stats?: any[];
+  manual_products_catalog?: ProductCatalogItem[]; // Items added manually via UI
   timestamp?: string;
 }
 
@@ -46,12 +48,11 @@ interface DataContextType {
   isLoading: boolean;
   setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
   addPurchase: (purchase: Omit<Purchase, 'id' | 'created_at'>) => Promise<void>;
+  addProduct: (product: ProductCatalogItem) => Promise<void>;
   refreshPurchases: () => Promise<void>;
 }
 
 const DataContext = createContext<DataContextType | undefined>(undefined);
-
-
 
 export function DataProvider({ children, initialData }: { children: ReactNode; initialData: ExcelData }) {
   const [data, setData] = useState<ExcelData>(initialData);
@@ -77,7 +78,7 @@ export function DataProvider({ children, initialData }: { children: ReactNode; i
         const { data: stateData, error } = await supabase
             .from('loja_app_state')
             .select('key, value')
-            .in('key', ['import_orders', 'import_customers', 'import_stats']);
+            .in('key', ['import_orders', 'import_customers', 'import_stats', 'manual_products_catalog']);
         
         if (stateData && !error) {
             const updates: Partial<ExcelData> = {};
@@ -85,6 +86,7 @@ export function DataProvider({ children, initialData }: { children: ReactNode; i
                 if (item.key === 'import_orders') updates.orders = item.value;
                 if (item.key === 'import_customers') updates.customers = item.value;
                 if (item.key === 'import_stats') updates.stats = item.value;
+                if (item.key === 'manual_products_catalog') updates.manual_products_catalog = item.value;
             });
             
             if (Object.keys(updates).length > 0) {
@@ -113,6 +115,29 @@ export function DataProvider({ children, initialData }: { children: ReactNode; i
     }
   };
 
+  const addProduct = async (product: ProductCatalogItem) => {
+    try {
+      const currentManual = data.manual_products_catalog || [];
+      // Check if exists
+      if (currentManual.find(p => p.ref === product.ref)) return;
+
+      const newManual = [...currentManual, product];
+      
+      // Persist to Supabase State
+      const { error } = await supabase
+        .from('loja_app_state')
+        .upsert({ key: 'manual_products_catalog', value: newManual });
+
+      if (error) throw error;
+      
+      // Update local state
+      setData(prev => ({ ...prev, manual_products_catalog: newManual }));
+    } catch (err) {
+      console.error('Error adding product:', err);
+      throw err;
+    }
+  };
+
   const addPurchase = async (purchase: Omit<Purchase, 'id' | 'created_at'>) => {
     try {
       const { error } = await supabase.from('loja_compras').insert([purchase]);
@@ -127,7 +152,7 @@ export function DataProvider({ children, initialData }: { children: ReactNode; i
   const refreshPurchases = fetchPurchases;
 
   return (
-    <DataContext.Provider value={{ data, setData, isLoading, setIsLoading, addPurchase, refreshPurchases }}>
+    <DataContext.Provider value={{ data, setData, isLoading, setIsLoading, addPurchase, addProduct, refreshPurchases }}>
       {children}
     </DataContext.Provider>
   );

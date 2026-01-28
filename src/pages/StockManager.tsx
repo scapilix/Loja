@@ -20,7 +20,7 @@ import { useData } from '../contexts/DataContext';
 
 export default function StockManager() {
   const stockInventory = useStockLogic();
-  const { addPurchase } = useData();
+  const { addPurchase, addProduct } = useData();
   const [searchTerm, setSearchTerm] = useState('');
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -52,8 +52,22 @@ export default function StockManager() {
     quantidade: 1,
     data_compra: new Date().toISOString().split('T')[0],
     fornecedor: '',
-    preco_custo: ''
+    preco_custo: '',
+    nome_artigo: '',
+    pvp: ''
   });
+
+  const isNewItem = useMemo(() => {
+    if (!formData.ref || formData.ref.length < 2) return false;
+    // Check if ref exists in inventory
+    const exists = stockInventory.find(item => item.ref === formData.ref);
+    return !exists;
+  }, [formData.ref, stockInventory]);
+
+  const projectedProfit = useMemo(() => {
+    if (!formData.pvp || !formData.preco_custo) return null;
+    return Number(formData.pvp) - Number(formData.preco_custo);
+  }, [formData.pvp, formData.preco_custo]);
 
   // Sorting State
   const [sortConfig, setSortConfig] = useState<{ key: keyof StockStatus | 'profit_unit'; direction: 'asc' | 'desc' } | null>(null);
@@ -102,6 +116,26 @@ export default function StockManager() {
 
     try {
       setIsSubmitting(true);
+      
+      // If new item, register it first
+      if (isNewItem) {
+        if (!formData.nome_artigo || !formData.pvp) {
+          alert('Por favor preencha os dados do novo artigo (Nome e PVP).');
+          setIsSubmitting(false);
+          return;
+        }
+
+        await addProduct({
+          ref: formData.ref,
+          nome_artigo: formData.nome_artigo,
+          pvp_cica: Number(formData.pvp),
+          base_price: Number(formData.preco_custo),
+          iva: 0.23, // Defaulting to 23% for now or 0
+          lucro_meu_faturado: (Number(formData.pvp) - Number(formData.preco_custo)),
+          fornecedor: formData.fornecedor || 'Desconhecido'
+        });
+      }
+      
       await addPurchase({
         ref: formData.ref,
         quantidade: Number(formData.quantidade),
@@ -115,7 +149,9 @@ export default function StockManager() {
         quantidade: 1,
         data_compra: new Date().toISOString().split('T')[0],
         fornecedor: '',
-        preco_custo: ''
+        preco_custo: '',
+        nome_artigo: '',
+        pvp: ''
       });
     } catch (error) {
       alert('Erro ao registar compra. Verifique a consola.');
@@ -439,6 +475,76 @@ export default function StockManager() {
                         </div>
                     )}
                  </div>
+
+                 <AnimatePresence>
+                   {isNewItem && (
+                     <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: 'auto' }}
+                        exit={{ opacity: 0, height: 0 }}
+                        className="space-y-4 overflow-hidden"
+                     >
+                        <div className="p-4 bg-purple-50 dark:bg-purple-900/10 rounded-2xl border border-purple-100 dark:border-purple-500/10">
+                            <div className="flex items-center gap-2 mb-4">
+                                <div className="w-6 h-6 rounded-full bg-purple-600 flex items-center justify-center text-white">
+                                    <Plus className="w-3 h-3" />
+                                </div>
+                                <span className="font-black text-sm text-purple-700 dark:text-purple-300">Novo Artigo Detetado</span>
+                            </div>
+                            
+                            <div className="space-y-4">
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Nome do Artigo</label>
+                                    <input 
+                                        type="text" 
+                                        required={isNewItem}
+                                        value={formData.nome_artigo} 
+                                        onChange={(e) => setFormData({...formData, nome_artigo: e.target.value})} 
+                                        className="w-full px-4 py-3 bg-white dark:bg-slate-900 border border-purple-200 dark:border-purple-500/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm font-bold"
+                                        placeholder="Ex: Capa Silicone IPhone 15"
+                                    />
+                                </div>
+                                
+                                <div className="grid grid-cols-2 gap-4">
+                                   <div className="space-y-2">
+                                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Preço Custo (€)</label>
+                                        <input 
+                                            type="number" 
+                                            step="0.01"
+                                            required={isNewItem}
+                                            value={formData.preco_custo} 
+                                            onChange={(e) => setFormData({...formData, preco_custo: e.target.value})} 
+                                            className="w-full px-4 py-3 bg-white dark:bg-slate-900 border border-purple-200 dark:border-purple-500/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm font-bold"
+                                            placeholder="0.00"
+                                        />
+                                   </div>
+                                   <div className="space-y-2">
+                                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">PVP Venda (€)</label>
+                                        <input 
+                                            type="number" 
+                                            step="0.01"
+                                            required={isNewItem}
+                                            value={formData.pvp} 
+                                            onChange={(e) => setFormData({...formData, pvp: e.target.value})} 
+                                            className="w-full px-4 py-3 bg-white dark:bg-slate-900 border border-purple-200 dark:border-purple-500/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm font-bold"
+                                            placeholder="0.00"
+                                        />
+                                   </div>
+                                </div>
+                                
+                                {projectedProfit !== null && (
+                                    <div className="flex justify-between items-center px-3 py-2 bg-white/50 dark:bg-slate-900/50 rounded-xl">
+                                        <span className="text-xs font-bold text-slate-500">Lucro Estimado:</span>
+                                        <span className={`text-sm font-black ${projectedProfit > 0 ? 'text-emerald-500' : 'text-rose-500'}`}>
+                                            {formatCurrency(projectedProfit)}
+                                        </span>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                     </motion.div>
+                   )}
+                 </AnimatePresence>
 
                  <div className="grid grid-cols-2 gap-4">
                      <div className="space-y-2">

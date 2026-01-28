@@ -62,6 +62,9 @@ export function useStockLogic() {
     
     // Add all from Base Items Catalog
     (data.products_catalog || []).forEach(p => masterRefs.add(String(p.ref).trim().toUpperCase()));
+
+    // Add all from Manual Products Catalog
+    (data.manual_products_catalog || []).forEach(p => masterRefs.add(String(p.ref).trim().toUpperCase()));
     
     // Add all from Purchases (in case we bought something not in catalog yet)
     purchaseMap.forEach((_, key) => masterRefs.add(key));
@@ -77,8 +80,11 @@ export function useStockLogic() {
       const totalSold = salesMap.get(ref) || 0;
       const currentStock = totalPurchased - totalSold;
       
-      // Get Details from Catalog
-      const catalogItem = data.products_catalog?.find(p => String(p.ref).trim().toUpperCase() === ref);
+      // Get Details from Catalog (Base or Manual)
+      const baseCatalogItem = data.products_catalog?.find(p => String(p.ref).trim().toUpperCase() === ref);
+      const manualCatalogItem = data.manual_products_catalog?.find(p => String(p.ref).trim().toUpperCase() === ref);
+      const catalogItem = baseCatalogItem || manualCatalogItem;
+
       const name = catalogItem && catalogItem.nome_artigo ? catalogItem.nome_artigo : 'Item Desconhecido';
       const basePrice = catalogItem ? catalogItem.base_price : undefined;
       const pvp = catalogItem ? catalogItem.pvp_cica : undefined;
