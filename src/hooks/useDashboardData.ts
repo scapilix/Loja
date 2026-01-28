@@ -19,7 +19,7 @@ export interface DashboardMetrics {
     revenue: number;
     history: Order[]; 
   }[];
-  topProducts: { ref: string; quantity: number; revenue: number; avgPrice: number }[];
+  topProducts: { ref: string; quantity: number; revenue: number; avgPrice: number; name?: string }[];
 
   salesByLocation: { location: string; revenue: number; orders: number }[];
   salesByDayOfWeek: { day: string; revenue: number; orders: number; percentage: number }[];

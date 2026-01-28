@@ -35,6 +35,8 @@ interface Fatura {
   categoria: string;
   tipo_fatura: 'Compras' | 'Vendas' | 'Despesas';
   taxa_iva: number;
+  fornecedor?: string;
+  fatura_status?: 'C/F' | 'S/F';
   created_at?: string;
 }
 
@@ -67,7 +69,9 @@ export default function Faturas() {
     valor_iva: 0,
     categoria: 'Despesa/Compras',
     tipo_fatura: 'Compras',
-    taxa_iva: 23
+    taxa_iva: 23,
+    fatura_status: 'C/F',
+    fornecedor: ''
   });
 
   const [customIva, setCustomIva] = useState(false);
@@ -166,7 +170,9 @@ export default function Faturas() {
             valor_iva: 0,
             categoria: 'Despesa/Compras',
             tipo_fatura: 'Compras',
-            taxa_iva: 23
+            taxa_iva: 23,
+            fatura_status: 'C/F',
+            fornecedor: ''
         });
         setCustomIva(false);
         fetchFaturas();
@@ -302,7 +308,8 @@ export default function Faturas() {
                   <tr>
                     <th className="px-8 py-4">Data</th>
                     <th className="px-4 py-4">Tipo</th>
-                    <th className="px-4 py-4">Entidade</th>
+                    <th className="px-4 py-4">Status</th>
+                    <th className="px-4 py-4">Entidade / Fornecedor</th>
                     <th className="px-4 py-4">Categoria</th>
                     <th className="px-4 py-4 text-right">Valor Total</th>
                     <th className="px-8 py-4 text-center">Ações</th>
@@ -324,8 +331,21 @@ export default function Faturas() {
                         </span>
                       </td>
                       <td className="px-4 py-5">
+                         <span className={`px-3 py-1 text-[9px] font-black uppercase tracking-tighter rounded-full ${
+                           fatura.fatura_status === 'C/F' ? 'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400' :
+                           'bg-amber-50 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400'
+                         }`}>
+                           {fatura.fatura_status || 'C/F'}
+                         </span>
+                      </td>
+                      <td className="px-4 py-5">
                          <div className="flex flex-col">
-                            <span className="text-sm font-black text-slate-950 dark:text-white uppercase tracking-tight">{fatura.entidade}</span>
+                            <span className="text-sm font-black text-slate-950 dark:text-white uppercase tracking-tight">
+                              {fatura.entidade}
+                              {fatura.fornecedor && (
+                                <span className="ml-2 text-slate-400 font-bold text-xs">({fatura.fornecedor})</span>
+                              )}
+                            </span>
                             <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">{fatura.numero_fatura || 'S/ Nº'}</span>
                          </div>
                       </td>
@@ -413,6 +433,32 @@ export default function Faturas() {
               </div>
 
               <form onSubmit={handleSubmit} className="p-8 space-y-8 overflow-y-auto max-h-[70vh]">
+                 {/* Status Selector (C/F vs S/F) */}
+                 <div className="flex items-center gap-4 bg-slate-100 dark:bg-white/5 p-2 rounded-3xl border border-slate-200 dark:border-white/10">
+                    <button
+                      type="button"
+                      onClick={() => setFormData({...formData, fatura_status: 'C/F'})}
+                      className={`flex-1 py-4 px-6 rounded-2xl text-xs font-black uppercase tracking-widest transition-all ${
+                        formData.fatura_status === 'C/F' 
+                          ? 'bg-purple-600 text-white shadow-lg shadow-purple-500/30' 
+                          : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-200'
+                      }`}
+                    >
+                      Com Fatura (C/F)
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setFormData({...formData, fatura_status: 'S/F'})}
+                      className={`flex-1 py-4 px-6 rounded-2xl text-xs font-black uppercase tracking-widest transition-all ${
+                        formData.fatura_status === 'S/F' 
+                          ? 'bg-amber-500 text-white shadow-lg shadow-amber-500/30' 
+                          : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-200'
+                      }`}
+                    >
+                      Sem Fatura (S/F)
+                    </button>
+                 </div>
+
                  <div className="grid grid-cols-2 gap-6">
                     <div className="space-y-2">
                         <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Tipo de Fatura</label>
@@ -432,18 +478,33 @@ export default function Faturas() {
                     </div>
                  </div>
 
-                 <div className="grid grid-cols-2 gap-6">
+                  <div className="grid grid-cols-2 gap-6">
                     <div className="space-y-2">
                         <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Entidade</label>
                         <input type="text" required value={formData.entidade} onChange={(e) => setFormData({...formData, entidade: e.target.value})} className="w-full px-4 py-4 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-2xl focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm font-bold" />
                     </div>
                     <div className="space-y-2">
+                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Fornecedor (Opcional)</label>
+                        <input type="text" value={formData.fornecedor} onChange={(e) => setFormData({...formData, fornecedor: e.target.value})} placeholder="Nome do Fornecedor" className="w-full px-4 py-4 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-2xl focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm font-bold" />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-6">
+                    <div className="space-y-2">
                         <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Nº Fatura</label>
                         <input type="text" placeholder="FT 2026/001" value={formData.numero_fatura} onChange={(e) => setFormData({...formData, numero_fatura: e.target.value})} className="w-full px-4 py-4 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-2xl focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm font-bold" />
                     </div>
-                 </div>
+                    <div className="space-y-2">
+                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Categoria</label>
+                        <select value={formData.categoria} onChange={(e) => setFormData({...formData, categoria: e.target.value})} className="w-full px-4 py-4 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-2xl focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm font-bold">
+                            {CATEGORIES.map(cat => (
+                                <option key={cat} value={cat}>{cat}</option>
+                            ))}
+                        </select>
+                    </div>
+                  </div>
 
-                 <div className="grid grid-cols-2 gap-6">
+                  <div className="grid grid-cols-2 gap-6">
                     <div className="space-y-2">
                         <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Taxa IVA</label>
                         <select 
@@ -467,15 +528,7 @@ export default function Faturas() {
                           />
                       </div>
                     )}
-                    <div className="space-y-2">
-                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Categoria</label>
-                        <select value={formData.categoria} onChange={(e) => setFormData({...formData, categoria: e.target.value})} className="w-full px-4 py-4 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-2xl focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm font-bold">
-                            {CATEGORIES.map(cat => (
-                                <option key={cat} value={cat}>{cat}</option>
-                            ))}
-                        </select>
-                    </div>
-                 </div>
+                  </div>
 
                  <div className="grid grid-cols-3 gap-6">
                     <div className="space-y-2">

@@ -14,10 +14,11 @@ interface ExcelImportProps {
 const syncProductCatalog = async (stockData: any[]) => {
   try {
     for (const item of stockData) {
-      // Map Excel columns: REF (col B), NOME_ARTIGO (col C), PVP_NORMAL (col F)
+      // Map Excel columns: REF (col B), NOME_ARTIGO (col C), PVP_CIVA (col H)
+      // The header cleaning logic transforms "PVP C/IVA" to "pvp_civa"
       const ref = item.ref || '';
       const productName = item.nome_artigo || item.nome || item.produto;
-      const pvp = parseFloat(item.pvp_normal || item.preco || 0);
+      const pvp = parseFloat(item.pvp_civa || item.pvp_normal || item.preco || 0);
       
       if (!ref || !productName) continue;
 
