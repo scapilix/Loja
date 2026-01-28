@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
+import { SmartDateFilter } from '../components/SmartDateFilter';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   FileText, 
@@ -40,6 +41,12 @@ interface Fatura {
   created_at?: string;
 }
 
+interface FilterState {
+  year: string;
+  month: string;
+  days: string[];
+}
+
 const CATEGORIES = ['Despesa/Compras', 'Serviços', 'Outros'];
 const INVOICE_TYPES = ['Compras', 'Vendas', 'Despesas'];
 const IVA_RATES = [
@@ -76,6 +83,12 @@ export default function Faturas() {
 
   const [customIva, setCustomIva] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const [filters, setFilters] = useState<FilterState>({
+    year: '',
+    month: '',
+    days: []
+  });
 
   useEffect(() => {
     fetchFaturas();
@@ -197,9 +210,87 @@ export default function Faturas() {
     }
   };
 
+  // ---------------------- FILTERING LOGIC ----------------------
+  const dateMetrics = useMemo(() => {
+    const allYears = new Set<string>();
+    const allMonths = new Set<string>();
+    
+    const yearCounts: Record<string, number> = {};
+    const monthCounts: Record<string, number> = {};
+    const dayCounts: Record<string, number> = {};
+
+    // First pass: Calculate available years based on ALL data
+    faturas.forEach(f => {
+      const date = new Date(f.data);
+      const y = date.getFullYear().toString();
+      allYears.add(y);
+      yearCounts[y] = (yearCounts[y] || 0) + 1;
+    });
+
+    // Second pass: Calculate months based on SELECTED YEAR
+    if (filters.year) {
+      faturas.forEach(f => {
+          const date = new Date(f.data);
+          const y = date.getFullYear().toString();
+          if (y === filters.year) {
+              const m = (date.getMonth() + 1).toString().padStart(2, '0');
+              allMonths.add(m);
+              monthCounts[m] = (monthCounts[m] || 0) + 1;
+          }
+      });
+    }
+
+    // Third pass: Calculate days based on SELECTED MONTH + YEAR
+    if (filters.year && filters.month) {
+      faturas.forEach(f => {
+          const date = new Date(f.data);
+          const y = date.getFullYear().toString();
+          const m = (date.getMonth() + 1).toString().padStart(2, '0');
+          if (y === filters.year && m === filters.month) {
+              const day = date.getDate().toString().padStart(2, '0');
+              dayCounts[day] = (dayCounts[day] || 0) + 1;
+          }
+      });
+    }
+
+    // Apply Date Filter to produce filtered list
+    let filtered = faturas;
+    if (filters.year) {
+      filtered = filtered.filter(f => f.data.startsWith(filters.year));
+    }
+    if (filters.year && filters.month) {
+      filtered = filtered.filter(f => {
+          const [, m] = f.data.split('-'); // Format YYYY-MM-DD
+          return m === filters.month;
+      });
+    }
+    if (filters.year && filters.month && filters.days.length > 0) {
+      filtered = filtered.filter(f => {
+          const [, , day] = f.data.split('-');
+          return filters.days.includes(day);
+      });
+    }
+
+    return {
+      filteredDate: filtered,
+      availableFilters: {
+        years: Array.from(allYears).sort().reverse(),
+        months: Array.from(allMonths).sort(),
+        days: [] // Handled by UI mostly, or we could populate
+      },
+      counts: {
+        years: yearCounts,
+        months: monthCounts,
+        days: dayCounts
+      }
+    };
+  }, [faturas, filters]);
+
+  const isFiltered = !!(filters.year || filters.month || filters.days.length > 0);
+
   const filteredByType = selectedType === 'Todos' 
-    ? faturas 
-    : faturas.filter(f => f.tipo_fatura === selectedType);
+    ? dateMetrics.filteredDate 
+    : dateMetrics.filteredDate.filter(f => f.tipo_fatura === selectedType);
 
   const totalSpent = filteredByType.reduce((acc: number, f: Fatura) => acc + Number(f.valor_total), 0);
   const totalIva = filteredByType.reduce((acc: number, f: Fatura) => acc + Number(f.valor_iva), 0);
@@ -232,6 +323,26 @@ export default function Faturas() {
         </div>
 
         <div className="flex items-center gap-3">
+            {/* DATE FILTER */}
+            <div className="flex items-center gap-2 mr-2">
+              <SmartDateFilter 
+                  filters={filters}
+                  setFilters={setFilters}
+                  availableFilters={dateMetrics.availableFilters as any}
+                  counts={dateMetrics.counts}
+                  itemLabel="Faturas"
+              />
+              
+              {isFiltered && (
+                <button 
+                  onClick={() => setFilters({ year: '', month: '', days: [] })}
+                  className="flex items-center gap-2 px-3 py-3 bg-rose-50 dark:bg-rose-500/10 text-rose-600 dark:text-rose-400 hover:bg-rose-500 hover:text-white rounded-2xl text-xs font-black uppercase tracking-widest transition-all duration-300"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              )}
+            </div>
+
             <select
               value={selectedType}
               onChange={(e) => setSelectedType(e.target.value)}
