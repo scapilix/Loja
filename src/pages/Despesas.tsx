@@ -288,6 +288,7 @@
                     setFilters={setFilters}
                     availableFilters={dateMetrics.availableFilters as any}
                     counts={dateMetrics.counts}
+                    itemLabel="Despesas"
                 />
                 
                 {isFiltered && (

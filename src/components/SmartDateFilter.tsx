@@ -21,9 +21,10 @@ interface SmartDateFilterProps {
     months: Record<string, number>;
     days: Record<string, number>;
   };
+  itemLabel?: string;
 }
 
-export const SmartDateFilter: React.FC<SmartDateFilterProps> = ({ filters, setFilters, availableFilters, counts }) => {
+export const SmartDateFilter: React.FC<SmartDateFilterProps> = ({ filters, setFilters, availableFilters, counts, itemLabel = 'Vendas' }) => {
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -165,7 +166,7 @@ export const SmartDateFilter: React.FC<SmartDateFilterProps> = ({ filters, setFi
                   >
                     {year}
                     <span className={`block text-[9px] mt-0.5 ${filters.year === year ? 'text-white/80' : 'text-slate-400 dark:text-slate-500'}`}>
-                      {counts.years[year] || 0} Vendas
+                      {counts.years[year] || 0} {itemLabel}
                     </span>
                   </button>
                 ))}
