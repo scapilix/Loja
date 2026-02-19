@@ -142,6 +142,26 @@ export default function Despesas() {
     days: [],
   });
 
+  // Dynamic Expense Types: Merge defaults with existing data
+  const availableTypes = useMemo(() => {
+    const types = JSON.parse(JSON.stringify(EXPENSE_TYPES)); // Deep copy defaults
+    
+    despesas.forEach(d => {
+        if (d.tipo && d.categoria && types[d.categoria]) {
+            if (!types[d.categoria].includes(d.tipo)) {
+                types[d.categoria].push(d.tipo);
+            }
+        }
+    });
+    
+    // Sort all lists
+    Object.keys(types).forEach(cat => {
+        types[cat].sort();
+    });
+
+    return types;
+  }, [despesas]);
+
   const [formData, setFormData] = useState<Despesa>({
     data: new Date().toISOString().split("T")[0],
     categoria: "Casa Fixa",
@@ -661,45 +681,58 @@ export default function Despesas() {
                       <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">
                         Tipo de Despesa
                       </label>
-                      <div className="relative">
-                        <input
-                          type="text"
-                          value={formData.tipo || ""}
-                          onChange={(e) => {
-                            setFormData({ ...formData, tipo: e.target.value });
-                            setShowTypeSuggestions(true);
-                          }}
-                          onFocus={() => setShowTypeSuggestions(true)}
-                          onBlur={() => setTimeout(() => setShowTypeSuggestions(false), 200)}
-                          placeholder="Ex: Renda, Eletricidade..."
-                          className="w-full px-4 py-4 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-2xl focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm font-bold"
-                        />
-                        {showTypeSuggestions && (
-                          <div className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-2xl shadow-xl z-50 max-h-48 overflow-y-auto">
-                            {EXPENSE_TYPES[formData.categoria]
-                              ?.filter((t) =>
-                                t
-                                  .toLowerCase()
-                                  .includes((formData.tipo || "").toLowerCase()),
-                              )
-                              .map((type) => (
-                                <button
-                                  key={type}
-                                  type="button"
-                                  onClick={() => {
-                                    setFormData({ ...formData, tipo: type });
-                                    setShowTypeSuggestions(false);
-                                  }}
-                                  className="w-full text-left px-4 py-3 hover:bg-slate-50 dark:hover:bg-white/5 text-sm font-bold text-slate-700 dark:text-slate-200 transition-colors"
-                                >
-                                  {type}
-                                </button>
-                              ))}
-                            {/* "Create New" prompt if not found matches exactly? Optional. 
-                                The input allows typing anything, so "Create New" is implicit by just typing. 
-                            */}
-                          </div>
-                        )}
+                      <div className="flex gap-2 relative">
+                        <div className="relative flex-1">
+                          <input
+                            type="text"
+                            value={formData.tipo || ""}
+                            onChange={(e) => {
+                              setFormData({ ...formData, tipo: e.target.value });
+                              setShowTypeSuggestions(true);
+                            }}
+                            ref={(input) => { if(input && document.activeElement !== input) { /* optional management */ }}}
+                            id="tipo-despesa-input"
+                            onFocus={() => setShowTypeSuggestions(true)}
+                            onBlur={() => setTimeout(() => setShowTypeSuggestions(false), 200)}
+                            placeholder="Ex: Renda, Eletricidade..."
+                            className="w-full px-4 py-4 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-2xl focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm font-bold"
+                          />
+                          {showTypeSuggestions && (
+                            <div className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-2xl shadow-xl z-50 max-h-48 overflow-y-auto">
+                              {availableTypes[formData.categoria]
+                                ?.filter((t: string) =>
+                                  t
+                                    .toLowerCase()
+                                    .includes((formData.tipo || "").toLowerCase()),
+                                )
+                                .map((type: string) => (
+                                  <button
+                                    key={type}
+                                    type="button"
+                                    onClick={() => {
+                                      setFormData({ ...formData, tipo: type });
+                                      setShowTypeSuggestions(false);
+                                    }}
+                                    className="w-full text-left px-4 py-3 hover:bg-slate-50 dark:hover:bg-white/5 text-sm font-bold text-slate-700 dark:text-slate-200 transition-colors"
+                                  >
+                                    {type}
+                                  </button>
+                                ))}
+                            </div>
+                          )}
+                        </div>
+                        <button
+                            type="button"
+                            onClick={() => {
+                                setFormData({...formData, tipo: ''});
+                                const input = document.getElementById('tipo-despesa-input') as HTMLInputElement;
+                                if (input) input.focus();
+                            }}
+                            className="p-4 bg-purple-100 hover:bg-purple-200 dark:bg-purple-500/20 dark:hover:bg-purple-500/30 text-purple-600 dark:text-purple-400 rounded-2xl transition-colors"
+                            title="Criar novo tipo"
+                        >
+                            <Plus className="w-5 h-5" />
+                        </button>
                       </div>
                     </div>
                     <div className="space-y-2">
