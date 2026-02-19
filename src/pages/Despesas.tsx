@@ -14,15 +14,13 @@ import {
   Home,
   Store,
   Users,
-  Camera,
-  RotateCw,
   EyeOff,
 } from "lucide-react";
 import { KpiCard } from "../components/KpiCard";
 import { supabase } from "../lib/supabase";
 import { SmartDateFilter } from "../components/SmartDateFilter";
 import { DespesasPorDia } from "../components/DespesasPorDia";
-import { scanReceipt } from "../lib/gemini";
+
 
 /* ---------------------- TYPE DEFINITIONS ---------------------- */
 interface Despesa {
@@ -152,7 +150,7 @@ export default function Despesas() {
     return saved ? JSON.parse(saved) : [];
   });
 
-  const [isScanning, setIsScanning] = useState(false);
+
 
   // Dynamic Expense Types: Merge defaults with existing data
   const availableTypes = useMemo(() => {
@@ -183,34 +181,7 @@ export default function Despesas() {
     }
   };
 
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
 
-    try {
-        setIsScanning(true);
-        const data = await scanReceipt(file);
-        
-        if (data) {
-             setFormData(prev => ({
-                ...prev,
-                data: data.data || prev.data,
-                valor_real: typeof data.total === 'number' ? data.total : prev.valor_real,
-                descricao: data.descricao || prev.descricao,
-                categoria: (data.categoria && CATEGORIES.some(c => c.value === data.categoria)) ? data.categoria : prev.categoria,
-                tipo: data.tipo || prev.tipo
-            }));
-            if (data.categoria && CATEGORIES.some((c: any) => c.value === data.categoria)) {
-                 // Trigger category side-effect manually if needed, or rely on user review
-            }
-        }
-    } catch (error) {
-        alert("Erro ao analisar fatura. Verifica a API Key ou tenta novamente.");
-        console.error(error);
-    } finally {
-        setIsScanning(false);
-    }
-  };
 
   const [formData, setFormData] = useState<Despesa>({
     data: new Date().toISOString().split("T")[0],
@@ -662,50 +633,18 @@ export default function Despesas() {
               className="bg-white dark:bg-slate-950 w-full max-w-2xl rounded-[3rem] shadow-2xl border border-slate-200 dark:border-white/10 overflow-hidden flex flex-col"
             >
               <div className="p-8 border-b border-slate-100 dark:border-white/5 bg-slate-50/50 dark:bg-white/5 flex justify-between items-center">
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-purple-600 rounded-2xl flex items-center justify-center shadow-lg shadow-purple-500/40">
-                    <Wallet className="text-white w-6 h-6" />
-                  </div>
-                  <div>
-                    <h2 className="text-2xl font-black text-slate-950 dark:text-white tracking-tighter">
-                      Registar Despesa
-                    </h2>
-                    <p className="text-xs text-slate-500 font-bold uppercase tracking-widest">
-                      Preencha os dados da despesa
-                    </p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-purple-600 rounded-2xl flex items-center justify-center shadow-lg shadow-purple-500/40">
-                    <Wallet className="text-white w-6 h-6" />
-                  </div>
-                  <div>
-                    <h2 className="text-2xl font-black text-slate-950 dark:text-white tracking-tighter">
-                      Registar Despesa
-                    </h2>
-                    <p className="text-xs text-slate-500 font-bold uppercase tracking-widest">
-                      Preencha os dados da despesa
-                    </p>
-                  </div>
-                </div>
-                
-                <div className="flex gap-2">
-                     <label className="p-3 bg-blue-50 hover:bg-blue-100 dark:bg-blue-500/10 dark:hover:bg-blue-500/20 text-blue-600 dark:text-blue-400 rounded-2xl cursor-pointer transition-colors flex items-center gap-2">
-                        <input type="file" accept="image/*" className="hidden" onChange={handleFileUpload} />
-                        {isScanning ? <RotateCw className="w-6 h-6 animate-spin" /> : <Camera className="w-6 h-6" />}
-                        <span className="text-xs font-bold hidden sm:inline">{isScanning ? "A Ler..." : "Digitalizar Fatura"}</span>
-                    </label>
-
-                    <button
-                    onClick={() => {
-                        setIsFormOpen(false);
-                        setIsAddingNewType(false);
-                    }}
-                    className="p-3 hover:bg-slate-100 dark:hover:bg-white/10 rounded-2xl transition-colors"
-                    >
+                 <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 bg-purple-600 rounded-2xl flex items-center justify-center shadow-lg shadow-purple-500/40">
+                        <Wallet className="text-white w-6 h-6" />
+                    </div>
+                    <div>
+                        <h2 className="text-2xl font-black text-slate-950 dark:text-white tracking-tighter">Registar Despesa</h2>
+                        <p className="text-xs text-slate-500 font-bold uppercase tracking-widest">Preencha os dados da despesa</p>
+                    </div>
+                 </div>
+                 <button onClick={() => setIsFormOpen(false)} className="p-3 hover:bg-slate-100 dark:hover:bg-white/10 rounded-2xl transition-colors">
                     <X className="w-6 h-6 text-slate-400" />
-                    </button>
-                </div>
+                 </button>
               </div>
 
               <form

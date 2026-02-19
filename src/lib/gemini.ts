@@ -22,10 +22,14 @@ export async function scanReceipt(imageFile: File): Promise<any> {
     Analyze this receipt/invoice image. Extract the following information in JSON format:
     {
       "data": "YYYY-MM-DD",
-      "total": Number,
-      "descricao": "Merchant name or brief description",
-      "categoria": "Suggest one of: 'Casa Fixa', 'Casa Variável', 'Loja Fixa', 'Loja Variável', 'Pessoal Fixa', 'Pessoal Variável'",
-      "tipo": "Suggest a specific type (e.g. Supermercado, Renda, etc.) based on standard expense types."
+      "total": Number (total value with tax),
+      "entidade": "Merchant/Entity Name",
+      "nif": "Tax ID/NIF if found",
+      "numero_fatura": "Invoice number (e.g. FT 2024/123)",
+      "valor_sem_iva": Number (net value),
+      "valor_iva": Number (tax value),
+      "categoria": "Suggest one of: 'Despesa/Compras', 'Serviços', 'Outros'",
+      "tipo_fatura": "Suggest one of: 'Compras', 'Vendas', 'Despesas'"
     }
     If you cannot find a field, return null for it.
     Return ONLY raw JSON, no markdown formatting.

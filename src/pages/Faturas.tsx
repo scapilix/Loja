@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { SmartDateFilter } from '../components/SmartDateFilter';
 import { motion, AnimatePresence } from 'framer-motion';
+import { scanReceipt } from '../lib/gemini';
 import { 
   FileText, 
   Plus, 
@@ -10,7 +11,9 @@ import {
   Tag, 
   CheckCircle2,
   Trash2,
-  X
+  X,
+  Camera,      // Added
+  RotateCw     // Added
 } from 'lucide-react';
 import { KpiCard } from '../components/KpiCard';
 import { supabase } from '../lib/supabase';
@@ -61,6 +64,7 @@ export default function Faturas() {
   const [faturas, setFaturas] = useState<Fatura[]>([]);
   const [, setIsLoading] = useState(true);
   const [isFormOpen, setIsFormOpen] = useState(false);
+  const [isScanning, setIsScanning] = useState(false); // Added state
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedType, setSelectedType] = useState<string>('Todos');
   
@@ -158,6 +162,42 @@ export default function Faturas() {
         valor_iva: iva
       };
     });
+  };
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+        setIsScanning(true);
+        const data = await scanReceipt(file);
+        
+        if (data) {
+             setFormData(prev => {
+                const total = typeof data.total === 'number' ? data.total : prev.valor_total;
+                const rate = 23; // Default to 23% or try to infer?
+                const { semIva, iva } = calculateIva(total, rate);
+
+                return {
+                    ...prev,
+                    data: data.data || prev.data,
+                    entidade: data.entidade || data.descricao || prev.entidade,
+                    nif: data.nif || prev.nif,
+                    numero_fatura: data.numero_fatura || prev.numero_fatura,
+                    valor_total: total,
+                    valor_sem_iva: typeof data.valor_sem_iva === 'number' ? data.valor_sem_iva : semIva,
+                    valor_iva: typeof data.valor_iva === 'number' ? data.valor_iva : iva,
+                    categoria: (data.categoria && CATEGORIES.includes(data.categoria)) ? data.categoria : prev.categoria,
+                    tipo_fatura: (data.tipo_fatura && INVOICE_TYPES.includes(data.tipo_fatura)) ? data.tipo_fatura : prev.tipo_fatura
+                };
+             });
+        }
+    } catch (error) {
+        alert("Erro ao analisar fatura. Verifica a API Key ou tenta novamente.");
+        console.error(error);
+    } finally {
+        setIsScanning(false);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -541,6 +581,14 @@ export default function Faturas() {
                  <button onClick={() => setIsFormOpen(false)} className="p-3 hover:bg-slate-100 dark:hover:bg-white/10 rounded-2xl transition-colors">
                     <X className="w-6 h-6 text-slate-400" />
                  </button>
+              </div>
+              
+              <div className="px-8 pt-6 pb-0">
+                <label className="flex items-center justify-center gap-2 w-full p-4 bg-blue-50 hover:bg-blue-100 dark:bg-blue-500/10 dark:hover:bg-blue-500/20 text-blue-600 dark:text-blue-400 rounded-2xl cursor-pointer transition-colors border-2 border-dashed border-blue-200 dark:border-blue-500/30">
+                    <input type="file" accept="image/*" className="hidden" onChange={handleFileUpload} disabled={isScanning} />
+                    {isScanning ? <RotateCw className="w-5 h-5 animate-spin" /> : <Camera className="w-5 h-5" />}
+                    <span className="font-bold uppercase tracking-wide text-xs">{isScanning ? "A analisar fatura..." : "Digitalizar Fatura / Recibo"}</span>
+                </label>
               </div>
 
               <form onSubmit={handleSubmit} className="p-8 space-y-8 overflow-y-auto max-h-[70vh]">
