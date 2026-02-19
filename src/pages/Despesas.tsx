@@ -14,11 +14,15 @@ import {
   Home,
   Store,
   Users,
+  Camera,
+  RotateCw,
+  EyeOff,
 } from "lucide-react";
 import { KpiCard } from "../components/KpiCard";
 import { supabase } from "../lib/supabase";
 import { SmartDateFilter } from "../components/SmartDateFilter";
 import { DespesasPorDia } from "../components/DespesasPorDia";
+import { scanReceipt } from "../lib/gemini";
 
 /* ---------------------- TYPE DEFINITIONS ---------------------- */
 interface Despesa {
@@ -143,25 +147,73 @@ export default function Despesas() {
     days: [],
   });
 
+    days: [],
+  });
+
+  const [hiddenTypes, setHiddenTypes] = useState<string[]>(() => {
+    const saved = localStorage.getItem("hiddenExpenseTypes");
+    return saved ? JSON.parse(saved) : [];
+  });
+
+  const [isScanning, setIsScanning] = useState(false);
+
   // Dynamic Expense Types: Merge defaults with existing data
   const availableTypes = useMemo(() => {
     const types = JSON.parse(JSON.stringify(EXPENSE_TYPES)); // Deep copy defaults
     
     despesas.forEach(d => {
         if (d.tipo && d.categoria && types[d.categoria]) {
-            if (!types[d.categoria].includes(d.tipo)) {
+            if (!types[d.categoria].includes(d.tipo) && !hiddenTypes.includes(d.tipo)) {
                 types[d.categoria].push(d.tipo);
             }
         }
     });
     
-    // Sort all lists
+    // Sort all lists & remove hidden defaults
     Object.keys(types).forEach(cat => {
+        types[cat] = types[cat].filter((t: string) => !hiddenTypes.includes(t));
         types[cat].sort();
     });
 
     return types;
-  }, [despesas]);
+  }, [despesas, hiddenTypes]);
+
+  const toggleHideType = (typeToHide: string) => {
+    if (confirm(`Ocultar "${typeToHide}" da lista de sugestões?`)) {
+        const newHidden = [...hiddenTypes, typeToHide];
+        setHiddenTypes(newHidden);
+        localStorage.setItem("hiddenExpenseTypes", JSON.stringify(newHidden));
+    }
+  };
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+        setIsScanning(true);
+        const data = await scanReceipt(file);
+        
+        if (data) {
+             setFormData(prev => ({
+                ...prev,
+                data: data.data || prev.data,
+                valor_real: typeof data.total === 'number' ? data.total : prev.valor_real,
+                descricao: data.descricao || prev.descricao,
+                categoria: (data.categoria && CATEGORIES.some(c => c.value === data.categoria)) ? data.categoria : prev.categoria,
+                tipo: data.tipo || prev.tipo
+            }));
+            if (data.categoria && CATEGORIES.some((c: any) => c.value === data.categoria)) {
+                 // Trigger category side-effect manually if needed, or rely on user review
+            }
+        }
+    } catch (error) {
+        alert("Erro ao analisar fatura. Verifica a API Key ou tenta novamente.");
+        console.error(error);
+    } finally {
+        setIsScanning(false);
+    }
+  };
 
   const [formData, setFormData] = useState<Despesa>({
     data: new Date().toISOString().split("T")[0],
@@ -639,15 +691,24 @@ export default function Despesas() {
                     </p>
                   </div>
                 </div>
-                <button
-                  onClick={() => {
-                      setIsFormOpen(false);
-                      setIsAddingNewType(false);
-                  }}
-                  className="p-3 hover:bg-slate-100 dark:hover:bg-white/10 rounded-2xl transition-colors"
-                >
-                  <X className="w-6 h-6 text-slate-400" />
-                </button>
+                
+                <div className="flex gap-2">
+                     <label className="p-3 bg-blue-50 hover:bg-blue-100 dark:bg-blue-500/10 dark:hover:bg-blue-500/20 text-blue-600 dark:text-blue-400 rounded-2xl cursor-pointer transition-colors flex items-center gap-2">
+                        <input type="file" accept="image/*" className="hidden" onChange={handleFileUpload} />
+                        {isScanning ? <RotateCw className="w-6 h-6 animate-spin" /> : <Camera className="w-6 h-6" />}
+                        <span className="text-xs font-bold hidden sm:inline">{isScanning ? "A Ler..." : "Digitalizar Fatura"}</span>
+                    </label>
+
+                    <button
+                    onClick={() => {
+                        setIsFormOpen(false);
+                        setIsAddingNewType(false);
+                    }}
+                    className="p-3 hover:bg-slate-100 dark:hover:bg-white/10 rounded-2xl transition-colors"
+                    >
+                    <X className="w-6 h-6 text-slate-400" />
+                    </button>
+                </div>
               </div>
 
               <form
@@ -754,17 +815,29 @@ export default function Despesas() {
                                             .includes((formData.tipo || "").toLowerCase()),
                                         )
                                         .map((type: string) => (
-                                        <button
-                                            key={type}
-                                            type="button"
-                                            onClick={() => {
-                                            setFormData({ ...formData, tipo: type });
-                                            setShowTypeSuggestions(false);
-                                            }}
-                                            className="w-full text-left px-4 py-3 hover:bg-slate-50 dark:hover:bg-white/5 text-sm font-bold text-slate-700 dark:text-slate-200 transition-colors"
-                                        >
-                                            {type}
-                                        </button>
+                                        <div key={type} className="flex items-center w-full hover:bg-slate-50 dark:hover:bg-white/5 transition-colors group/item">
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                setFormData({ ...formData, tipo: type });
+                                                setShowTypeSuggestions(false);
+                                                }}
+                                                className="flex-1 text-left px-4 py-3 text-sm font-bold text-slate-700 dark:text-slate-200"
+                                            >
+                                                {type}
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    toggleHideType(type);
+                                                }}
+                                                className="p-2 mr-2 text-slate-300 hover:text-rose-500 opacity-0 group-hover/item:opacity-100 transition-all"
+                                                title="Ocultar tipo"
+                                            >
+                                                <EyeOff className="w-3 h-3" />
+                                            </button>
+                                        </div>
                                         ))}
                                     </div>
                                 )}
