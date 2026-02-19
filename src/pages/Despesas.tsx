@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   Wallet,
   Plus,
+  Check,
   Search,
   TrendingDown,
   Target,
@@ -174,6 +175,7 @@ export default function Despesas() {
   });
 
   const [showTypeSuggestions, setShowTypeSuggestions] = useState(false);
+  const [isAddingNewType, setIsAddingNewType] = useState(false);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -624,8 +626,24 @@ export default function Despesas() {
                     </p>
                   </div>
                 </div>
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 bg-purple-600 rounded-2xl flex items-center justify-center shadow-lg shadow-purple-500/40">
+                    <Wallet className="text-white w-6 h-6" />
+                  </div>
+                  <div>
+                    <h2 className="text-2xl font-black text-slate-950 dark:text-white tracking-tighter">
+                      Registar Despesa
+                    </h2>
+                    <p className="text-xs text-slate-500 font-bold uppercase tracking-widest">
+                      Preencha os dados da despesa
+                    </p>
+                  </div>
+                </div>
                 <button
-                  onClick={() => setIsFormOpen(false)}
+                  onClick={() => {
+                      setIsFormOpen(false);
+                      setIsAddingNewType(false);
+                  }}
                   className="p-3 hover:bg-slate-100 dark:hover:bg-white/10 rounded-2xl transition-colors"
                 >
                   <X className="w-6 h-6 text-slate-400" />
@@ -682,57 +700,89 @@ export default function Despesas() {
                         Tipo de Despesa
                       </label>
                       <div className="flex gap-2 relative">
-                        <div className="relative flex-1">
-                          <input
-                            type="text"
-                            value={formData.tipo || ""}
-                            onChange={(e) => {
-                              setFormData({ ...formData, tipo: e.target.value });
-                              setShowTypeSuggestions(true);
-                            }}
-                            ref={(input) => { if(input && document.activeElement !== input) { /* optional management */ }}}
-                            id="tipo-despesa-input"
-                            onFocus={() => setShowTypeSuggestions(true)}
-                            onBlur={() => setTimeout(() => setShowTypeSuggestions(false), 200)}
-                            placeholder="Ex: Renda, Eletricidade..."
-                            className="w-full px-4 py-4 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-2xl focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm font-bold"
-                          />
-                          {showTypeSuggestions && (
-                            <div className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-2xl shadow-xl z-50 max-h-48 overflow-y-auto">
-                              {availableTypes[formData.categoria]
-                                ?.filter((t: string) =>
-                                  t
-                                    .toLowerCase()
-                                    .includes((formData.tipo || "").toLowerCase()),
-                                )
-                                .map((type: string) => (
-                                  <button
-                                    key={type}
+                        {isAddingNewType ? (
+                            <>
+                                <input
+                                    type="text"
+                                    autoFocus
+                                    value={formData.tipo || ""}
+                                    onChange={(e) => setFormData({ ...formData, tipo: e.target.value })}
+                                    placeholder="Nome do novo tipo..."
+                                    className="flex-1 px-4 py-4 bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-500/20 rounded-2xl focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm font-bold text-purple-700 dark:text-purple-300 placeholder-purple-300"
+                                />
+                                <button
+                                    type="button"
+                                    onClick={() => setIsAddingNewType(false)}
+                                    className="p-4 bg-green-100 hover:bg-green-200 dark:bg-green-500/20 dark:hover:bg-green-500/30 text-green-600 dark:text-green-400 rounded-2xl transition-colors"
+                                    title="Confirmar"
+                                >
+                                    <Check className="w-5 h-5" />
+                                </button>
+                                <button
                                     type="button"
                                     onClick={() => {
-                                      setFormData({ ...formData, tipo: type });
-                                      setShowTypeSuggestions(false);
+                                        setIsAddingNewType(false);
+                                        setFormData({ ...formData, tipo: '' });
                                     }}
-                                    className="w-full text-left px-4 py-3 hover:bg-slate-50 dark:hover:bg-white/5 text-sm font-bold text-slate-700 dark:text-slate-200 transition-colors"
-                                  >
-                                    {type}
-                                  </button>
-                                ))}
-                            </div>
-                          )}
-                        </div>
-                        <button
-                            type="button"
-                            onClick={() => {
-                                setFormData({...formData, tipo: ''});
-                                const input = document.getElementById('tipo-despesa-input') as HTMLInputElement;
-                                if (input) input.focus();
-                            }}
-                            className="p-4 bg-purple-100 hover:bg-purple-200 dark:bg-purple-500/20 dark:hover:bg-purple-500/30 text-purple-600 dark:text-purple-400 rounded-2xl transition-colors"
-                            title="Criar novo tipo"
-                        >
-                            <Plus className="w-5 h-5" />
-                        </button>
+                                    className="p-4 bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 text-slate-500 dark:text-slate-400 rounded-2xl transition-colors"
+                                    title="Cancelar"
+                                >
+                                    <X className="w-5 h-5" />
+                                </button>
+                            </>
+                        ) : (
+                            <>
+                                <div className="relative flex-1">
+                                <input
+                                    type="text"
+                                    value={formData.tipo || ""}
+                                    onChange={(e) => {
+                                    setFormData({ ...formData, tipo: e.target.value });
+                                    setShowTypeSuggestions(true);
+                                    }}
+                                    onFocus={() => setShowTypeSuggestions(true)}
+                                    onBlur={() => setTimeout(() => setShowTypeSuggestions(false), 200)}
+                                    placeholder="Ex: Renda, Eletricidade..."
+                                    className="w-full px-4 py-4 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-2xl focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm font-bold"
+                                />
+                                {showTypeSuggestions && (
+                                    <div className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-2xl shadow-xl z-50 max-h-48 overflow-y-auto">
+                                    {availableTypes[formData.categoria]
+                                        ?.filter((t: string) =>
+                                        t
+                                            .toLowerCase()
+                                            .includes((formData.tipo || "").toLowerCase()),
+                                        )
+                                        .map((type: string) => (
+                                        <button
+                                            key={type}
+                                            type="button"
+                                            onClick={() => {
+                                            setFormData({ ...formData, tipo: type });
+                                            setShowTypeSuggestions(false);
+                                            }}
+                                            className="w-full text-left px-4 py-3 hover:bg-slate-50 dark:hover:bg-white/5 text-sm font-bold text-slate-700 dark:text-slate-200 transition-colors"
+                                        >
+                                            {type}
+                                        </button>
+                                        ))}
+                                    </div>
+                                )}
+                                </div>
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        setIsAddingNewType(true);
+                                        setFormData({...formData, tipo: ''});
+                                    }}
+                                    className="px-4 py-4 bg-purple-100 hover:bg-purple-200 dark:bg-purple-500/20 dark:hover:bg-purple-500/30 text-purple-600 dark:text-purple-400 rounded-2xl transition-colors flex items-center gap-2"
+                                    title="Criar novo tipo"
+                                >
+                                    <Plus className="w-4 h-4" />
+                                    <span className="text-xs font-black uppercase tracking-wider hidden sm:inline">Adicionar</span>
+                                </button>
+                            </>
+                        )}
                       </div>
                     </div>
                     <div className="space-y-2">
