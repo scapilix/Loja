@@ -17,7 +17,8 @@ import {
   ShieldCheck,
   KeyRound,
   FileText,
-  Wallet
+  Wallet,
+  Banknote
 } from 'lucide-react';
 import { ThemeToggle } from '../ThemeToggle';
 import { ExcelImport } from '../ExcelImport';
@@ -36,6 +37,7 @@ const navigation = [
   { id: 'portes', label: 'Portes', icon: Truck, path: '/portes' },
   { id: 'faturas', label: 'Faturas', icon: FileText, path: '/faturas' },
   { id: 'despesas', label: 'Despesas', icon: Wallet, path: '/despesas' },
+  { id: 'emprestimos', label: 'Empréstimos', icon: Banknote, path: '/emprestimos' },
 ];
 
 function AppLayout() {

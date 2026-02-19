@@ -10,6 +10,7 @@ import Rankings from '../pages/Rankings';
 import Portes from '../pages/Portes';
 import Faturas from '../pages/Faturas';
 import Despesas from '../pages/Despesas';
+import Emprestimos from '../pages/Emprestimos';
 
 import Login from '../pages/Login';
 import { FilterProvider } from '../contexts/FilterContext';
@@ -50,6 +51,7 @@ function AppRoutes() {
                 <Route path="portes" element={<Portes />} />
                 <Route path="faturas" element={<Faturas />} />
                 <Route path="despesas" element={<Despesas />} />
+                <Route path="emprestimos" element={<Emprestimos />} />
                 <Route path="*" element={<Navigate to="/" replace />} />
               </Route>
             </Routes>
