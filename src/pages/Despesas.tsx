@@ -40,6 +40,8 @@ interface Despesa {
   valor_projetado: number | null;
   valor_real: number;
   descricao: string;
+  estado?: 'Pendente' | 'Pago';
+  data_pagamento?: string | null;
   created_at?: string;
 }
 
@@ -206,6 +208,8 @@ export default function Despesas() {
     valor_projetado: null,
     valor_real: 0,
     descricao: "",
+    estado: "Pago",
+    data_pagamento: new Date().toISOString().split("T")[0],
   });
 
   const [showTypeSuggestions, setShowTypeSuggestions] = useState(false);
@@ -298,6 +302,24 @@ export default function Despesas() {
       console.error("Error adding despesa:", err);
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const markAsPaid = async (despesa: Despesa) => {
+    if (!confirm("Marcar esta despesa como PAGA?")) return;
+    try {
+        const today = new Date().toISOString().split("T")[0];
+        const { error } = await supabase
+            .from('loja_despesas')
+            .update({ 
+                estado: 'Pago', 
+                data_pagamento: today 
+            })
+            .eq('id', despesa.id);
+        
+        if (!error) fetchDespesas();
+    } catch (err) {
+        console.error("Error updating status:", err);
     }
   };
 
@@ -598,6 +620,7 @@ export default function Despesas() {
                 <th className="px-4 py-4">Categoria</th>
                 <th className="px-4 py-4">Descrição</th>
                 <th className="px-4 py-4">Pagamento</th>
+                <th className="px-4 py-4 text-center">Estado</th>
                 <th className="px-4 py-4 text-right">Projetado</th>
                 <th className="px-4 py-4 text-right">Real</th>
                 <th className="px-8 py-4 text-center">Ações</th>
@@ -648,6 +671,15 @@ export default function Despesas() {
                         </span>
                       </div>
                     </td>
+                    <td className="px-4 py-5 text-center">
+                        <span className={`px-2 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${
+                            despesa.estado === 'Pendente' 
+                                ? 'bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-400' 
+                                : 'bg-green-100 text-green-700 dark:bg-green-500/20 dark:text-green-400'
+                        }`}>
+                            {despesa.estado || 'Pago'}
+                        </span>
+                    </td>
                     <td className="px-4 py-5 text-right font-bold text-slate-600 dark:text-slate-400">
                       {despesa.valor_projetado
                         ? formatCurrency(Number(despesa.valor_projetado))
@@ -663,6 +695,15 @@ export default function Despesas() {
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>
+                      {despesa.estado === 'Pendente' && (
+                          <button
+                            onClick={() => markAsPaid(despesa)}
+                            className="p-2 ml-2 text-green-600 hover:bg-green-50 dark:hover:bg-green-500/10 rounded-xl transition-all"
+                            title="Marcar como Pago"
+                          >
+                            <Check className="w-4 h-4" />
+                          </button>
+                      )}
                     </td>
                   </tr>
                 );
@@ -851,6 +892,33 @@ export default function Despesas() {
                 onSubmit={handleSubmit}
                 className="p-8 space-y-8 overflow-y-auto max-h-[70vh]"
               >
+                {/* STATUS TOGGLE */}
+                <div className="flex items-center justify-between p-4 bg-slate-50 dark:bg-white/5 rounded-2xl border border-slate-200 dark:border-white/10">
+                    <div className="flex flex-col">
+                        <span className="text-sm font-black text-slate-950 dark:text-white">Estado do Pagamento</span>
+                        <span className="text-xs text-slate-500 dark:text-slate-400 font-bold">
+                            {formData.estado === 'Pago' ? 'A despesa já foi paga' : 'Ainda não foi paga (Pendente)'}
+                        </span>
+                    </div>
+                    <button
+                        type="button"
+                        onClick={() => setFormData(prev => ({
+                            ...prev,
+                            estado: prev.estado === 'Pago' ? 'Pendente' : 'Pago',
+                            data_pagamento: prev.estado === 'Pago' ? null : new Date().toISOString().split("T")[0]
+                        }))}
+                        className={`relative w-14 h-8 rounded-full transition-colors duration-300 ${
+                            formData.estado === 'Pago' ? 'bg-green-500' : 'bg-amber-400'
+                        }`}
+                    >
+                        <motion.div
+                            layout
+                            className="absolute top-1 w-6 h-6 bg-white rounded-full shadow-md"
+                            animate={{ left: formData.estado === 'Pago' ? 28 : 4 }}
+                        />
+                    </button>
+                </div>
+
                 <div className="grid grid-cols-2 gap-6">
                   <div className="space-y-2">
                     <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">
