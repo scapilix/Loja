@@ -151,6 +151,11 @@ export default function Despesas() {
     return saved ? JSON.parse(saved) : [];
   });
 
+  const [budgetMap, setBudgetMap] = useState<Record<string, Record<string, number>>>({});
+  const [isBudgetModalOpen, setIsBudgetModalOpen] = useState(false);
+  const [addingBudgetCategory, setAddingBudgetCategory] = useState<string | null>(null);
+  const [newBudgetTypeName, setNewBudgetTypeName] = useState("");
+
 
 
   // Dynamic Expense Types: Merge defaults with existing data
@@ -207,12 +212,7 @@ export default function Despesas() {
   const [isAddingNewType, setIsAddingNewType] = useState(false);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [addingBudgetCategory, setAddingBudgetCategory] = useState<string | null>(null); // Added state
-  const [newBudgetTypeName, setNewBudgetTypeName] = useState(""); // Added state
 
-
-  const [budgetMap, setBudgetMap] = useState<Record<string, Record<string, number>>>({});
-  const [isBudgetModalOpen, setIsBudgetModalOpen] = useState(false);
 
   useEffect(() => {
     fetchDespesas();
