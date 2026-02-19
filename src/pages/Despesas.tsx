@@ -15,6 +15,7 @@ import {
   Store,
   Users,
   EyeOff,
+  Settings,
 } from "lucide-react";
 import { KpiCard } from "../components/KpiCard";
 import { supabase } from "../lib/supabase";
@@ -199,9 +200,40 @@ export default function Despesas() {
 
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+
+  const [budgetMap, setBudgetMap] = useState<Record<string, Record<string, number>>>({});
+  const [isBudgetModalOpen, setIsBudgetModalOpen] = useState(false);
+
   useEffect(() => {
     fetchDespesas();
+    fetchBudget();
   }, []);
+
+  const fetchBudget = async () => {
+    try {
+        const { data, error } = await supabase.from('loja_orcamento').select('*');
+        if (data && !error) {
+            const newMap: Record<string, Record<string, number>> = {};
+            data.forEach((item: any) => {
+                if (!newMap[item.categoria]) newMap[item.categoria] = {};
+                newMap[item.categoria][item.tipo] = Number(item.valor_projetado);
+            });
+            setBudgetMap(newMap);
+        }
+    } catch (error) {
+        console.error("Error fetching budget:", error);
+    }
+  };
+
+  // Auto-fill Projected Value
+  useEffect(() => {
+    if (formData.categoria && formData.tipo && formData.categoria.includes("Fixa")) {
+        const budget = budgetMap[formData.categoria]?.[formData.tipo];
+        if (budget !== undefined) {
+             setFormData(prev => ({ ...prev, valor_projetado: budget }));
+        }
+    }
+  }, [formData.categoria, formData.tipo, budgetMap]);
 
   const fetchDespesas = async () => {
     try {
@@ -482,6 +514,13 @@ export default function Despesas() {
             />
           </div>
           <button
+             onClick={() => setIsBudgetModalOpen(true)}
+             className="p-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-200 rounded-2xl transition-all shadow-sm hover:bg-slate-50 dark:hover:bg-white/5 active:scale-95"
+             title="Definir Orçamento"
+          >
+            <Settings className="w-5 h-5" />
+          </button>
+          <button
             onClick={() => setIsFormOpen(true)}
             className="flex items-center gap-3 px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-2xl font-black uppercase tracking-widest text-xs transition-all shadow-lg shadow-purple-500/20 active:scale-95"
           >
@@ -622,6 +661,79 @@ export default function Despesas() {
           </table>
         </div>
       </div>
+
+      <AnimatePresence>
+        {isBudgetModalOpen && (
+            <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/60 backdrop-blur-md">
+                <motion.div
+                    initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                    className="bg-white dark:bg-slate-950 w-full max-w-4xl rounded-[3rem] shadow-2xl border border-slate-200 dark:border-white/10 overflow-hidden flex flex-col max-h-[85vh]"
+                >
+                    <div className="p-8 border-b border-slate-100 dark:border-white/5 bg-slate-50/50 dark:bg-white/5 flex justify-between items-center">
+                         <div className="flex items-center gap-4">
+                            <div className="w-12 h-12 bg-blue-600 rounded-2xl flex items-center justify-center shadow-lg shadow-blue-500/40">
+                                <Target className="text-white w-6 h-6" />
+                            </div>
+                            <div>
+                                <h2 className="text-2xl font-black text-slate-950 dark:text-white tracking-tighter">Orçamento de Despesas Fixas</h2>
+                                <p className="text-xs text-slate-500 font-bold uppercase tracking-widest">Defina os valores previstos para cada tipo</p>
+                            </div>
+                         </div>
+                         <button onClick={() => setIsBudgetModalOpen(false)} className="p-3 hover:bg-slate-100 dark:hover:bg-white/10 rounded-2xl transition-colors">
+                            <X className="w-6 h-6 text-slate-400" />
+                         </button>
+                    </div>
+                    
+                    <div className="p-8 overflow-y-auto space-y-8">
+                       {['Casa Fixa', 'Loja Fixa', 'Pessoal Fixa'].map(cat => (
+                           <div key={cat} className="space-y-4">
+                               <div className="flex items-center gap-2 mb-4">
+                                   <div className={`w-8 h-1 rounded-full ${cat.includes('Casa') ? 'bg-blue-500' : cat.includes('Loja') ? 'bg-purple-500' : 'bg-emerald-500'}`} />
+                                   <h3 className="text-lg font-black text-slate-800 dark:text-slate-200">{cat}</h3>
+                               </div>
+                               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                   {availableTypes[cat]?.map((type: string) => (
+                                       <div key={type} className="flex flex-col gap-2 p-4 bg-slate-50 dark:bg-white/5 rounded-2xl border border-slate-100 dark:border-white/5">
+                                            <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">{type}</label>
+                                            <div className="relative">
+                                                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-bold">€</span>
+                                                <input 
+                                                    type="number" 
+                                                    step="0.01"
+                                                    placeholder="0.00"
+                                                    defaultValue={budgetMap[cat]?.[type] || ''}
+                                                    onBlur={async (e) => {
+                                                        const val = parseFloat(e.target.value);
+                                                        if (!isNaN(val)) {
+                                                            // Optimistic update
+                                                            setBudgetMap(prev => ({
+                                                                ...prev,
+                                                                [cat]: { ...(prev[cat] || {}), [type]: val }
+                                                            }));
+                                                            
+                                                            // Persist to Supabase
+                                                            await supabase.from('loja_orcamento').upsert({
+                                                                categoria: cat,
+                                                                tipo: type,
+                                                                valor_projetado: val
+                                                            }, { onConflict: 'categoria, tipo' });
+                                                        }
+                                                    }}
+                                                    className="w-full pl-8 pr-4 py-2 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-white/10 font-bold text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                                                />
+                                            </div>
+                                       </div>
+                                   ))}
+                               </div>
+                           </div>
+                       ))}
+                    </div>
+                </motion.div>
+            </div>
+        )}
+      </AnimatePresence>
 
       <AnimatePresence>
         {isFormOpen && (
