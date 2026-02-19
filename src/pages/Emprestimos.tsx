@@ -6,13 +6,11 @@ import {
   Check,
   Search,
   TrendingUp,
-  TrendingDown,
   AlertCircle,
   Trash2,
   X,
   Calendar,
-  User,
-  Info
+  User
 } from "lucide-react";
 import { KpiCard } from "../components/KpiCard";
 import { supabase } from "../lib/supabase";
