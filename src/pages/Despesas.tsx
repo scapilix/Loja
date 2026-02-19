@@ -147,9 +147,6 @@ export default function Despesas() {
     days: [],
   });
 
-    days: [],
-  });
-
   const [hiddenTypes, setHiddenTypes] = useState<string[]>(() => {
     const saved = localStorage.getItem("hiddenExpenseTypes");
     return saved ? JSON.parse(saved) : [];
