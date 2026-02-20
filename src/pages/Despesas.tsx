@@ -336,6 +336,36 @@ export default function Despesas() {
     }
   };
 
+  const deleteBudgetType = async (cat: string, type: string) => {
+    if (!confirm(`Remover "${type}" do orçamento de ${cat}?`)) return;
+    try {
+        // 1. Delete from Supabase
+        const { error } = await supabase
+            .from('loja_orcamento')
+            .delete()
+            .eq('categoria', cat)
+            .eq('tipo', type);
+        
+        if (!error) {
+            // 2. Update local state
+            setBudgetMap(prev => {
+                const newMap = { ...prev };
+                if (newMap[cat]) {
+                    delete newMap[cat][type];
+                }
+                return newMap;
+            });
+
+            // 3. Hide from suggestions (to prevent it from coming back if it's a default)
+            const newHidden = [...hiddenTypes, type];
+            setHiddenTypes(newHidden);
+            localStorage.setItem("hiddenExpenseTypes", JSON.stringify(newHidden));
+        }
+    } catch (err) {
+        console.error("Error deleting budget type:", err);
+    }
+  };
+
   // ---------------------- FILTERING LOGIC ----------------------
 
   const dateMetrics = useMemo(() => {
@@ -728,7 +758,7 @@ export default function Despesas() {
                                 <Target className="text-white w-6 h-6" />
                             </div>
                             <div>
-                                <h2 className="text-2xl font-black text-slate-950 dark:text-white tracking-tighter">Orçamento de Despesas Fixas</h2>
+                                <h2 className="text-2xl font-black text-slate-950 dark:text-white tracking-tighter">Orçamento de Despesas</h2>
                                 <p className="text-xs text-slate-500 font-bold uppercase tracking-widest">Defina os valores previstos para cada tipo</p>
                             </div>
                          </div>
@@ -738,7 +768,7 @@ export default function Despesas() {
                     </div>
                     
                     <div className="p-8 overflow-y-auto space-y-8">
-                       {['Casa Fixa', 'Loja Fixa', 'Pessoal Fixa'].map(cat => (
+                       {['Casa Fixa', 'Casa Variável', 'Loja Fixa', 'Loja Variável', 'Pessoal Fixa', 'Pessoal Variável'].map(cat => (
                            <div key={cat} className="space-y-4">
                                <div className="flex items-center gap-2 mb-4">
                                    <div className={`w-8 h-1 rounded-full ${cat.includes('Casa') ? 'bg-blue-500' : cat.includes('Loja') ? 'bg-purple-500' : 'bg-emerald-500'}`} />
@@ -746,8 +776,17 @@ export default function Despesas() {
                                </div>
                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                                    {availableTypes[cat]?.map((type: string) => (
-                                       <div key={type} className="flex flex-col gap-2 p-4 bg-slate-50 dark:bg-white/5 rounded-2xl border border-slate-100 dark:border-white/5">
-                                            <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">{type}</label>
+                                       <div key={type} className="flex flex-col gap-2 p-4 bg-slate-50 dark:bg-white/5 rounded-2xl border border-slate-100 dark:border-white/5 relative group">
+                                            <div className="flex justify-between items-center pr-2">
+                                                <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">{type}</label>
+                                                <button 
+                                                    onClick={() => deleteBudgetType(cat, type)}
+                                                    className="p-1.5 text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10 rounded-lg transition-all opacity-0 group-hover:opacity-100"
+                                                    title="Eliminar categoria"
+                                                >
+                                                    <Trash2 className="w-3.5 h-3.5" />
+                                                </button>
+                                            </div>
                                             <div className="relative">
                                                 <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-bold">€</span>
                                                 <input 
