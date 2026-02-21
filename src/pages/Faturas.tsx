@@ -17,8 +17,7 @@ import {
   FileImage,
   Upload,
   Loader2,
-  Pencil, // Added
-  Eye // Added
+  Pencil
 } from 'lucide-react';
 import { KpiCard } from '../components/KpiCard';
 import { supabase } from '../lib/supabase';
