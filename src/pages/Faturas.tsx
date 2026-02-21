@@ -259,9 +259,13 @@ export default function Faturas() {
         });
         setCustomIva(false);
         fetchFaturas();
+      } else {
+        console.error('Database error:', error);
+        alert(`Erro ao guardar fatura: ${error.message}\n\nVerifique se as colunas 'fatura_url' e 'comprovativo_url' foram criadas na tabela 'loja_faturas'.`);
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error('Error adding fatura:', err);
+      alert('Ocorreu um erro inesperado ao salvar.');
     } finally {
       setIsSubmitting(false);
     }

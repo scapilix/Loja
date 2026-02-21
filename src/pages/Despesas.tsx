@@ -334,13 +334,19 @@ export default function Despesas() {
           valor_projetado: null,
           valor_real: 0,
           descricao: "",
+          estado: "Pago",
+          data_pagamento: new Date().toISOString().split("T")[0],
           fatura_url: null,
           comprovativo_url: null,
         });
         fetchDespesas();
+      } else {
+        console.error('Database error:', error);
+        alert(`Erro ao guardar despesa: ${error.message}\n\nVerifique se as colunas 'fatura_url' e 'comprovativo_url' foram criadas na tabela 'loja_despesas'.`);
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error("Error adding despesa:", err);
+      alert('Ocorreu um erro inesperado ao salvar.');
     } finally {
       setIsSubmitting(false);
     }
