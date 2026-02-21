@@ -252,8 +252,7 @@ export default function Despesas() {
 
   // Auto-fill Projected Value
   useEffect(() => {
-    const isProjectedExpected = formData.categoria.includes("Fixa") || formData.categoria === "Loja Variável";
-    if (formData.categoria && formData.tipo && isProjectedExpected) {
+    if (formData.categoria && formData.tipo) {
         const budget = budgetMap[formData.categoria]?.[formData.tipo];
         if (budget !== undefined) {
              setFormData(prev => ({ ...prev, valor_projetado: budget }));
@@ -315,9 +314,7 @@ export default function Despesas() {
       setIsSubmitting(true);
       const dataToInsert = {
         ...formData,
-        valor_projetado: (formData.categoria.includes("Fixa") || formData.categoria === "Loja Variável")
-          ? formData.valor_projetado
-          : null,
+        valor_projetado: formData.valor_projetado,
       };
 
       const { error } = await supabase
@@ -557,7 +554,7 @@ export default function Despesas() {
       currency: "EUR",
     }).format(val);
 
-  const isFixedCategory = formData.categoria.includes("Fixa") || formData.categoria === "Loja Variável";
+  const isFixedCategory = true; // Always show projected value field as requested
   const isFiltered = !!(
     filters.year ||
     filters.month ||
