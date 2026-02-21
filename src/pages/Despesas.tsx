@@ -252,7 +252,8 @@ export default function Despesas() {
 
   // Auto-fill Projected Value
   useEffect(() => {
-    if (formData.categoria && formData.tipo && formData.categoria.includes("Fixa")) {
+    const isProjectedExpected = formData.categoria.includes("Fixa") || formData.categoria === "Loja Variável";
+    if (formData.categoria && formData.tipo && isProjectedExpected) {
         const budget = budgetMap[formData.categoria]?.[formData.tipo];
         if (budget !== undefined) {
              setFormData(prev => ({ ...prev, valor_projetado: budget }));
@@ -314,7 +315,7 @@ export default function Despesas() {
       setIsSubmitting(true);
       const dataToInsert = {
         ...formData,
-        valor_projetado: formData.categoria.includes("Fixa")
+        valor_projetado: (formData.categoria.includes("Fixa") || formData.categoria === "Loja Variável")
           ? formData.valor_projetado
           : null,
       };
@@ -556,7 +557,7 @@ export default function Despesas() {
       currency: "EUR",
     }).format(val);
 
-  const isFixedCategory = formData.categoria.includes("Fixa");
+  const isFixedCategory = formData.categoria.includes("Fixa") || formData.categoria === "Loja Variável";
   const isFiltered = !!(
     filters.year ||
     filters.month ||
