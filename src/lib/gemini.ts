@@ -16,7 +16,7 @@ export async function scanReceipt(imageFile: File): Promise<any> {
   // Convert File to Base64
   const base64Data = await fileToGenerativePart(imageFile);
 
-  const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+  const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-latest" });
 
   const prompt = `
     Analyze this receipt/invoice image. Extract the following information in JSON format:
