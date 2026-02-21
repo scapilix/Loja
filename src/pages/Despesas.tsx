@@ -1295,11 +1295,21 @@ export default function Despesas() {
                            ) : (
                                <Upload className="w-6 h-6 text-slate-400 mb-2" />
                            )}
-                           <span className="text-xs font-bold text-slate-600 text-center">
-                               {uploadingFatura ? 'A carregar...' : formData.fatura_url ? 'Fatura Anexada' : 'Clique para anexar Fatura'}
-                           </span>
-                       </label>
-                   </div>
+                            <span className="text-xs font-bold text-slate-600 text-center">
+                                {uploadingFatura ? 'A carregar...' : formData.fatura_url ? 'Fatura Anexada' : 'Clique para anexar Fatura'}
+                            </span>
+                        </label>
+                        {formData.fatura_url && (
+                            <button
+                                type="button"
+                                onClick={() => setFormData(prev => ({ ...prev, fatura_url: null }))}
+                                className="flex items-center justify-center gap-2 py-2 text-rose-500 hover:text-rose-600 font-bold transition-all text-[10px] uppercase tracking-wider"
+                            >
+                                <Trash2 className="w-3 h-3" />
+                                <span>Remover Fatura</span>
+                            </button>
+                        )}
+                    </div>
                    
                    <div className="flex flex-col gap-3">
                        <span className="text-xs font-black text-slate-950 dark:text-white uppercase tracking-wider flex items-center gap-2">
@@ -1319,11 +1329,21 @@ export default function Despesas() {
                            ) : (
                                <Upload className="w-6 h-6 text-slate-400 mb-2" />
                            )}
-                           <span className="text-xs font-bold text-slate-600 text-center">
-                               {uploadingComprovativo ? 'A carregar...' : formData.comprovativo_url ? 'Comprovativo Anexado' : 'Clique para anexar Comprovativo'}
-                           </span>
-                       </label>
-                   </div>
+                            <span className="text-xs font-bold text-slate-600 text-center">
+                                {uploadingComprovativo ? 'A carregar...' : formData.comprovativo_url ? 'Comprovativo Anexado' : 'Clique para anexar Comprovativo'}
+                            </span>
+                        </label>
+                        {formData.comprovativo_url && (
+                            <button
+                                type="button"
+                                onClick={() => setFormData(prev => ({ ...prev, comprovativo_url: null }))}
+                                className="flex items-center justify-center gap-2 py-2 text-rose-500 hover:text-rose-600 font-bold transition-all text-[10px] uppercase tracking-wider"
+                            >
+                                <Trash2 className="w-3 h-3" />
+                                <span>Remover Comprovativo</span>
+                            </button>
+                        )}
+                    </div>
                 </div>
 
                 <button
