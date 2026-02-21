@@ -19,7 +19,8 @@ import {
   FileImage,
   FileText,
   Upload,
-  Loader2
+  Loader2,
+  Pencil
 } from "lucide-react";
 import { KpiCard } from "../components/KpiCard";
 import { supabase } from "../lib/supabase";
@@ -306,6 +307,17 @@ export default function Despesas() {
     }
   };
 
+  const handleEdit = (despesa: Despesa) => {
+    setFormData({
+      ...despesa,
+      estado: despesa.estado || 'Pago',
+      data_pagamento: despesa.data_pagamento || null,
+      fatura_url: despesa.fatura_url || null,
+      comprovativo_url: despesa.comprovativo_url || null
+    });
+    setIsFormOpen(true);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (formData.valor_real <= 0) return;
@@ -317,9 +329,21 @@ export default function Despesas() {
         valor_projetado: formData.valor_projetado,
       };
 
-      const { error } = await supabase
-        .from("loja_despesas")
-        .insert([dataToInsert]);
+      let error;
+      if (formData.id) {
+        // Update existing record
+        const { error: updateError } = await supabase
+          .from("loja_despesas")
+          .update(dataToInsert)
+          .eq("id", formData.id);
+        error = updateError;
+      } else {
+        // Insert new record
+        const { error: insertError } = await supabase
+          .from("loja_despesas")
+          .insert([dataToInsert]);
+        error = insertError;
+      }
 
       if (!error) {
         setIsFormOpen(false);
@@ -783,21 +807,31 @@ export default function Despesas() {
                       {formatCurrency(Number(despesa.valor_real))}
                     </td>
                     <td className="px-8 py-5 text-center">
-                      <button
-                        onClick={() => deleteDespesa(despesa.id!)}
-                        className="p-2 text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10 rounded-xl transition-all opacity-0 group-hover:opacity-100"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                      {despesa.estado === 'Pendente' && (
-                          <button
-                            onClick={() => markAsPaid(despesa)}
-                            className="p-2 ml-2 text-green-600 hover:bg-green-50 dark:hover:bg-green-500/10 rounded-xl transition-all"
-                            title="Marcar como Pago"
-                          >
-                            <Check className="w-4 h-4" />
-                          </button>
-                      )}
+                      <div className="flex items-center justify-center gap-1">
+                        <button
+                          onClick={() => handleEdit(despesa)}
+                          className="p-2 text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-500/10 rounded-xl transition-all opacity-0 group-hover:opacity-100"
+                          title="Editar"
+                        >
+                          <Pencil className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => deleteDespesa(despesa.id!)}
+                          className="p-2 text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10 rounded-xl transition-all opacity-0 group-hover:opacity-100"
+                          title="Eliminar"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                        {despesa.estado === 'Pendente' && (
+                            <button
+                              onClick={() => markAsPaid(despesa)}
+                              className="p-2 text-green-600 hover:bg-green-50 dark:hover:bg-green-500/10 rounded-xl transition-all"
+                              title="Marcar como Pago"
+                            >
+                              <Check className="w-4 h-4" />
+                            </button>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 );
@@ -978,13 +1012,17 @@ export default function Despesas() {
             >
               <div className="p-8 border-b border-slate-100 dark:border-white/5 bg-slate-50/50 dark:bg-white/5 flex justify-between items-center">
                  <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 bg-purple-600 rounded-2xl flex items-center justify-center shadow-lg shadow-purple-500/40">
-                        <Wallet className="text-white w-6 h-6" />
-                    </div>
-                    <div>
-                        <h2 className="text-2xl font-black text-slate-950 dark:text-white tracking-tighter">Registar Despesa</h2>
-                        <p className="text-xs text-slate-500 font-bold uppercase tracking-widest">Preencha os dados da despesa</p>
-                    </div>
+                      <div className="w-12 h-12 bg-purple-600 rounded-2xl flex items-center justify-center shadow-lg shadow-purple-500/40">
+                        <FileText className="text-white w-6 h-6" />
+                      </div>
+                      <div>
+                        <h2 className="text-2xl font-black text-slate-950 dark:text-white tracking-tighter">
+                          {formData.id ? 'Editar Despesa' : 'Registar Despesa'}
+                        </h2>
+                        <p className="text-xs text-slate-500 font-bold uppercase tracking-widest">
+                          {formData.id ? 'Atualize os dados da despesa' : 'Controlo de gastos e pagamentos'}
+                        </p>
+                      </div>
                  </div>
                  <button onClick={() => setIsFormOpen(false)} className="p-3 hover:bg-slate-100 dark:hover:bg-white/10 rounded-2xl transition-colors">
                     <X className="w-6 h-6 text-slate-400" />

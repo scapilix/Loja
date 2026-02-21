@@ -16,7 +16,9 @@ import {
   RotateCw,     // Added
   FileImage,
   Upload,
-  Loader2
+  Loader2,
+  Pencil, // Added
+  Eye // Added
 } from 'lucide-react';
 import { KpiCard } from '../components/KpiCard';
 import { supabase } from '../lib/supabase';
@@ -228,15 +230,37 @@ export default function Faturas() {
     }
   };
 
+  const handleEdit = (fatura: Fatura) => {
+    setFormData({
+      ...fatura,
+      fatura_url: fatura.fatura_url || null,
+      comprovativo_url: fatura.comprovativo_url || null
+    });
+    setIsFormOpen(true);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.entidade || formData.valor_total <= 0) return;
 
     try {
       setIsSubmitting(true);
-      const { error } = await supabase
-        .from('loja_faturas')
-        .insert([formData]);
+      
+      let error;
+      if (formData.id) {
+        // Update existing record
+        const { error: updateError } = await supabase
+          .from('loja_faturas')
+          .update(formData)
+          .eq('id', formData.id);
+        error = updateError;
+      } else {
+        // Insert new record
+        const { error: insertError } = await supabase
+          .from('loja_faturas')
+          .insert([formData]);
+        error = insertError;
+      }
 
       if (!error) {
         setIsFormOpen(false);
@@ -562,12 +586,22 @@ export default function Faturas() {
                         {formatCurrency(Number(fatura.valor_total))}
                       </td>
                       <td className="px-8 py-5 text-center">
-                        <button 
-                          onClick={() => deleteFatura(fatura.id!)}
-                          className="p-2 text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10 rounded-xl transition-all opacity-0 group-hover:opacity-100"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
+                        <div className="flex items-center justify-center gap-1">
+                          <button 
+                            onClick={() => handleEdit(fatura)}
+                            className="p-2 text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-500/10 rounded-xl transition-all opacity-0 group-hover:opacity-100"
+                            title="Editar"
+                          >
+                            <Pencil className="w-4 h-4" />
+                          </button>
+                          <button 
+                            onClick={() => deleteFatura(fatura.id!)}
+                            className="p-2 text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10 rounded-xl transition-all opacity-0 group-hover:opacity-100"
+                            title="Eliminar"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -623,12 +657,16 @@ export default function Faturas() {
             >
               <div className="p-8 border-b border-slate-100 dark:border-white/5 bg-slate-50/50 dark:bg-white/5 flex justify-between items-center">
                  <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 bg-purple-600 rounded-2xl flex items-center justify-center shadow-lg shadow-purple-500/40">
-                        <FileText className="text-white w-6 h-6" />
+                    <div className="w-12 h-12 bg-blue-600 rounded-2xl flex items-center justify-center shadow-lg shadow-blue-500/40">
+                      <FileText className="text-white w-6 h-6" />
                     </div>
                     <div>
-                        <h2 className="text-2xl font-black text-slate-950 dark:text-white tracking-tighter">Cadastrar Fatura</h2>
-                        <p className="text-xs text-slate-500 font-bold uppercase tracking-widest">Preencha os dados oficiais</p>
+                      <h2 className="text-2xl font-black text-slate-950 dark:text-white tracking-tighter">
+                        {formData.id ? 'Editar Fatura' : 'Nova Fatura'}
+                      </h2>
+                      <p className="text-xs text-slate-500 font-bold uppercase tracking-widest">
+                        {formData.id ? 'Atualize os dados da fatura' : 'Digitalize ou introduza manualmente'}
+                      </p>
                     </div>
                  </div>
                  <button onClick={() => setIsFormOpen(false)} className="p-3 hover:bg-slate-100 dark:hover:bg-white/10 rounded-2xl transition-colors">
