@@ -13,11 +13,15 @@ import {
   Trash2,
   X,
   Camera,      // Added
-  RotateCw     // Added
+  RotateCw,     // Added
+  FileImage,
+  Upload,
+  Loader2
 } from 'lucide-react';
 import { KpiCard } from '../components/KpiCard';
 import { supabase } from '../lib/supabase';
 import { CustomTooltip } from '../components/CustomTooltip';
+import { uploadToSupabase } from '../lib/upload';
 import { 
   PieChart,
   Pie,
@@ -41,6 +45,8 @@ interface Fatura {
   taxa_iva: number;
   fornecedor?: string;
   fatura_status?: 'C/F' | 'S/F';
+  fatura_url?: string | null;
+  comprovativo_url?: string | null;
   created_at?: string;
 }
 
@@ -82,11 +88,15 @@ export default function Faturas() {
     tipo_fatura: 'Compras',
     taxa_iva: 23,
     fatura_status: 'C/F',
-    fornecedor: ''
+    fornecedor: '',
+    fatura_url: null,
+    comprovativo_url: null
   });
 
   const [customIva, setCustomIva] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [uploadingFatura, setUploadingFatura] = useState(false);
+  const [uploadingComprovativo, setUploadingComprovativo] = useState(false);
 
   const [filters, setFilters] = useState<FilterState>({
     year: '',
@@ -164,38 +174,56 @@ export default function Faturas() {
     });
   };
 
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, type: 'fatura' | 'comprovativo') => {
     const file = e.target.files?.[0];
     if (!file) return;
 
     try {
-        setIsScanning(true);
-        const data = await scanReceipt(file);
-        
-        if (data) {
-             setFormData(prev => {
-                const total = typeof data.total === 'number' ? data.total : prev.valor_total;
-                const rate = 23; // Default to 23% or try to infer?
-                const { semIva, iva } = calculateIva(total, rate);
+        if (type === 'fatura') setUploadingFatura(true);
+        else setUploadingComprovativo(true);
 
-                return {
-                    ...prev,
-                    data: data.data || prev.data,
-                    entidade: data.entidade || data.descricao || prev.entidade,
-                    nif: data.nif || prev.nif,
-                    numero_fatura: data.numero_fatura || prev.numero_fatura,
-                    valor_total: total,
-                    valor_sem_iva: typeof data.valor_sem_iva === 'number' ? data.valor_sem_iva : semIva,
-                    valor_iva: typeof data.valor_iva === 'number' ? data.valor_iva : iva,
-                    categoria: (data.categoria && CATEGORIES.includes(data.categoria)) ? data.categoria : prev.categoria,
-                    tipo_fatura: (data.tipo_fatura && INVOICE_TYPES.includes(data.tipo_fatura)) ? data.tipo_fatura : prev.tipo_fatura
-                };
-             });
+        // Upload to Supabase first
+        const fileUrl = await uploadToSupabase(file, 'faturas');
+        
+        if (fileUrl) {
+            setFormData(prev => ({
+                ...prev,
+                [type === 'fatura' ? 'fatura_url' : 'comprovativo_url']: fileUrl
+            }));
+        }
+
+        // Only run OCR for Faturas
+        if (type === 'fatura') {
+            setIsScanning(true);
+            const data = await scanReceipt(file);
+            
+            if (data) {
+                 setFormData(prev => {
+                    const total = typeof data.total === 'number' ? data.total : prev.valor_total;
+                    const rate = 23; // Default to 23% or try to infer?
+                    const { semIva, iva } = calculateIva(total, rate);
+
+                    return {
+                        ...prev,
+                        data: data.data || prev.data,
+                        entidade: data.entidade || data.descricao || prev.entidade,
+                        nif: data.nif || prev.nif,
+                        numero_fatura: data.numero_fatura || prev.numero_fatura,
+                        valor_total: total,
+                        valor_sem_iva: typeof data.valor_sem_iva === 'number' ? data.valor_sem_iva : semIva,
+                        valor_iva: typeof data.valor_iva === 'number' ? data.valor_iva : iva,
+                        categoria: (data.categoria && CATEGORIES.includes(data.categoria)) ? data.categoria : prev.categoria,
+                        tipo_fatura: (data.tipo_fatura && INVOICE_TYPES.includes(data.tipo_fatura)) ? data.tipo_fatura : prev.tipo_fatura
+                    };
+                 });
+            }
         }
     } catch (error) {
-        alert("Erro ao analisar fatura. Verifica a API Key ou tenta novamente.");
+        alert("Erro ao processar ficheiro. Verifica a licença/conexão.");
         console.error(error);
     } finally {
+        if (type === 'fatura') setUploadingFatura(false);
+        else setUploadingComprovativo(false);
         setIsScanning(false);
     }
   };
@@ -225,7 +253,9 @@ export default function Faturas() {
             tipo_fatura: 'Compras',
             taxa_iva: 23,
             fatura_status: 'C/F',
-            fornecedor: ''
+            fornecedor: '',
+            fatura_url: null,
+            comprovativo_url: null
         });
         setCustomIva(false);
         fetchFaturas();
@@ -459,7 +489,8 @@ export default function Faturas() {
                   <tr>
                     <th className="px-8 py-4">Data</th>
                     <th className="px-4 py-4">Tipo</th>
-                    <th className="px-4 py-4">Status</th>
+                    <th className="px-4 py-4 text-center">Status</th>
+                    <th className="px-4 py-4 text-center">Anexos</th>
                     <th className="px-4 py-4">Entidade / Fornecedor</th>
                     <th className="px-4 py-4">Categoria</th>
                     <th className="px-4 py-4 text-right">Valor Total</th>
@@ -481,13 +512,31 @@ export default function Faturas() {
                           {fatura.tipo_fatura}
                         </span>
                       </td>
-                      <td className="px-4 py-5">
+                      <td className="px-4 py-5 text-center">
                          <span className={`px-3 py-1 text-[9px] font-black uppercase tracking-tighter rounded-full ${
                            fatura.fatura_status === 'C/F' ? 'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400' :
                            'bg-amber-50 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400'
                          }`}>
                            {fatura.fatura_status || 'C/F'}
                          </span>
+                      </td>
+                      <td className="px-4 py-5 text-center">
+                         <div className="flex items-center justify-center gap-2">
+                            {fatura.fatura_url ? (
+                               <a href={fatura.fatura_url} target="_blank" rel="noopener noreferrer" className="p-1.5 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-lg transition-colors" title="Ver Fatura">
+                                  <FileText className="w-4 h-4" />
+                               </a>
+                            ) : (
+                               <span className="p-1.5 opacity-20"><FileText className="w-4 h-4" /></span>
+                            )}
+                            {fatura.comprovativo_url ? (
+                               <a href={fatura.comprovativo_url} target="_blank" rel="noopener noreferrer" className="p-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-600 rounded-lg transition-colors" title="Ver Comprovativo">
+                                  <FileImage className="w-4 h-4" />
+                               </a>
+                            ) : (
+                               <span className="p-1.5 opacity-20"><FileImage className="w-4 h-4" /></span>
+                            )}
+                         </div>
                       </td>
                       <td className="px-4 py-5">
                          <div className="flex flex-col">
@@ -583,12 +632,54 @@ export default function Faturas() {
                  </button>
               </div>
               
-              <div className="px-8 pt-6 pb-0">
-                <label className="flex items-center justify-center gap-2 w-full p-4 bg-blue-50 hover:bg-blue-100 dark:bg-blue-500/10 dark:hover:bg-blue-500/20 text-blue-600 dark:text-blue-400 rounded-2xl cursor-pointer transition-colors border-2 border-dashed border-blue-200 dark:border-blue-500/30">
-                    <input type="file" accept="image/*" className="hidden" onChange={handleFileUpload} disabled={isScanning} />
-                    {isScanning ? <RotateCw className="w-5 h-5 animate-spin" /> : <Camera className="w-5 h-5" />}
-                    <span className="font-bold uppercase tracking-wide text-xs">{isScanning ? "A analisar fatura..." : "Digitalizar Fatura / Recibo"}</span>
-                </label>
+              <div className="px-8 pt-6 pb-0 grid grid-cols-2 gap-4">
+                  <div className="flex flex-col gap-3">
+                       <span className="text-xs font-black text-slate-950 dark:text-white uppercase tracking-wider flex items-center gap-2">
+                           <FileText className="w-4 h-4 text-blue-500" />
+                           Fatura
+                       </span>
+                       <label className={`
+                           flex flex-col items-center justify-center border-2 border-dashed rounded-2xl p-4 transition-all cursor-pointer h-24
+                           ${formData.fatura_url ? 'border-blue-500/50 bg-blue-50/50' : 'border-slate-300 hover:border-blue-400 hover:bg-blue-50'}
+                           ${uploadingFatura || isScanning ? 'opacity-50 pointer-events-none' : ''}
+                       `}>
+                           <input type="file" accept="image/*,application/pdf" className="hidden" onChange={(e) => handleFileUpload(e, 'fatura')} />
+                           {uploadingFatura || isScanning ? (
+                               <RotateCw className="w-5 h-5 animate-spin text-blue-500 mb-1" />
+                           ) : formData.fatura_url ? (
+                               <CheckCircle2 className="w-5 h-5 text-blue-500 mb-1" />
+                           ) : (
+                               <Camera className="w-5 h-5 text-slate-400 mb-1" />
+                           )}
+                           <span className="text-[10px] font-bold text-slate-600 text-center uppercase tracking-wide">
+                               {isScanning ? 'A organizar...' : uploadingFatura ? 'A carregar...' : formData.fatura_url ? 'Fatura Anexada' : 'Livrete/Fatura'}
+                           </span>
+                       </label>
+                   </div>
+                   
+                   <div className="flex flex-col gap-3">
+                       <span className="text-xs font-black text-slate-950 dark:text-white uppercase tracking-wider flex items-center gap-2">
+                           <FileImage className="w-4 h-4 text-emerald-500" />
+                           Comprovativo
+                       </span>
+                       <label className={`
+                           flex flex-col items-center justify-center border-2 border-dashed rounded-2xl p-4 transition-all cursor-pointer h-24
+                           ${formData.comprovativo_url ? 'border-emerald-500/50 bg-emerald-50/50' : 'border-slate-300 hover:border-emerald-400 hover:bg-emerald-50'}
+                           ${uploadingComprovativo ? 'opacity-50 pointer-events-none' : ''}
+                       `}>
+                           <input type="file" accept="image/*,application/pdf" className="hidden" onChange={(e) => handleFileUpload(e, 'comprovativo')} />
+                           {uploadingComprovativo ? (
+                               <Loader2 className="w-5 h-5 animate-spin text-emerald-500 mb-1" />
+                           ) : formData.comprovativo_url ? (
+                               <CheckCircle2 className="w-5 h-5 text-emerald-500 mb-1" />
+                           ) : (
+                               <Upload className="w-5 h-5 text-slate-400 mb-1" />
+                           )}
+                           <span className="text-[10px] font-bold text-slate-600 text-center uppercase tracking-wide">
+                               {uploadingComprovativo ? 'A carregar...' : formData.comprovativo_url ? 'Comprovativo Anexado' : 'Comprovativo MB'}
+                           </span>
+                       </label>
+                   </div>
               </div>
 
               <form onSubmit={handleSubmit} className="p-8 space-y-8 overflow-y-auto max-h-[70vh]">

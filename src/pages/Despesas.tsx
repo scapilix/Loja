@@ -16,11 +16,16 @@ import {
   Users,
   EyeOff,
   Settings,
+  FileImage,
+  FileText,
+  Upload,
+  Loader2
 } from "lucide-react";
 import { KpiCard } from "../components/KpiCard";
 import { supabase } from "../lib/supabase";
 import { SmartDateFilter } from "../components/SmartDateFilter";
 import { DespesasPorDia } from "../components/DespesasPorDia";
+import { uploadToSupabase } from "../lib/upload";
 
 
 /* ---------------------- TYPE DEFINITIONS ---------------------- */
@@ -42,6 +47,8 @@ interface Despesa {
   descricao: string;
   estado?: 'Pendente' | 'Pago';
   data_pagamento?: string | null;
+  fatura_url?: string | null;
+  comprovativo_url?: string | null;
   created_at?: string;
 }
 
@@ -210,12 +217,16 @@ export default function Despesas() {
     descricao: "",
     estado: "Pago",
     data_pagamento: new Date().toISOString().split("T")[0],
+    fatura_url: null,
+    comprovativo_url: null,
   });
 
   const [showTypeSuggestions, setShowTypeSuggestions] = useState(false);
   const [isAddingNewType, setIsAddingNewType] = useState(false);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [uploadingFatura, setUploadingFatura] = useState(false);
+  const [uploadingComprovativo, setUploadingComprovativo] = useState(false);
 
 
   useEffect(() => {
@@ -267,6 +278,34 @@ export default function Despesas() {
     }
   };
 
+  const handleFileUpload = async (
+    e: React.ChangeEvent<HTMLInputElement>,
+    type: 'fatura' | 'comprovativo'
+  ) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+      if (type === 'fatura') setUploadingFatura(true);
+      else setUploadingComprovativo(true);
+
+      const url = await uploadToSupabase(file, 'despesas');
+      
+      if (url) {
+        setFormData(prev => ({
+          ...prev,
+          [type === 'fatura' ? 'fatura_url' : 'comprovativo_url']: url
+        }));
+      }
+    } catch (error) {
+      console.error(`Error uploading ${type}:`, error);
+      alert(`Erro ao fazer carregamento do(a) ${type}. Tente novamente.`);
+    } finally {
+      if (type === 'fatura') setUploadingFatura(false);
+      else setUploadingComprovativo(false);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (formData.valor_real <= 0) return;
@@ -295,6 +334,8 @@ export default function Despesas() {
           valor_projetado: null,
           valor_real: 0,
           descricao: "",
+          fatura_url: null,
+          comprovativo_url: null,
         });
         fetchDespesas();
       }
@@ -651,6 +692,7 @@ export default function Despesas() {
                 <th className="px-4 py-4">Descrição</th>
                 <th className="px-4 py-4">Pagamento</th>
                 <th className="px-4 py-4 text-center">Estado</th>
+                <th className="px-4 py-4 text-center">Anexos</th>
                 <th className="px-4 py-4 text-right">Projetado</th>
                 <th className="px-4 py-4 text-right">Real</th>
                 <th className="px-8 py-4 text-center">Ações</th>
@@ -709,6 +751,24 @@ export default function Despesas() {
                         }`}>
                             {despesa.estado || 'Pago'}
                         </span>
+                    </td>
+                    <td className="px-4 py-5 text-center">
+                       <div className="flex items-center justify-center gap-2">
+                          {despesa.fatura_url ? (
+                             <a href={despesa.fatura_url} target="_blank" rel="noopener noreferrer" className="p-1.5 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-lg transition-colors" title="Ver Fatura">
+                                <FileText className="w-4 h-4" />
+                             </a>
+                          ) : (
+                             <span className="p-1.5 opacity-20"><FileText className="w-4 h-4" /></span>
+                          )}
+                          {despesa.comprovativo_url ? (
+                             <a href={despesa.comprovativo_url} target="_blank" rel="noopener noreferrer" className="p-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-600 rounded-lg transition-colors" title="Ver Comprovativo">
+                                <FileImage className="w-4 h-4" />
+                             </a>
+                          ) : (
+                             <span className="p-1.5 opacity-20"><FileImage className="w-4 h-4" /></span>
+                          )}
+                       </div>
                     </td>
                     <td className="px-4 py-5 text-right font-bold text-slate-600 dark:text-slate-400">
                       {despesa.valor_projetado
@@ -1165,13 +1225,63 @@ export default function Despesas() {
                     Descrição Detalhada
                   </label>
                   <textarea
-                    rows={3}
+                    rows={2}
                     value={formData.descricao}
                     onChange={(e) =>
                       setFormData({ ...formData, descricao: e.target.value })
                     }
                     className="w-full px-4 py-4 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-2xl focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm font-bold resize-none"
                   />
+                </div>
+
+                <div className="grid grid-cols-2 gap-6 p-6 bg-slate-50 dark:bg-white/5 rounded-2xl border border-slate-200 dark:border-white/10">
+                   <div className="flex flex-col gap-3">
+                       <span className="text-xs font-black text-slate-950 dark:text-white uppercase tracking-wider flex items-center gap-2">
+                           <FileText className="w-4 h-4 text-blue-500" />
+                           Fatura
+                       </span>
+                       <label className={`
+                           flex flex-col items-center justify-center border-2 border-dashed rounded-2xl p-6 transition-all cursor-pointer
+                           ${formData.fatura_url ? 'border-blue-500/50 bg-blue-50/50' : 'border-slate-300 hover:border-blue-400 hover:bg-blue-50'}
+                           ${uploadingFatura ? 'opacity-50 pointer-events-none' : ''}
+                       `}>
+                           <input type="file" accept="image/*,application/pdf" className="hidden" onChange={(e) => handleFileUpload(e, 'fatura')} />
+                           {uploadingFatura ? (
+                               <Loader2 className="w-6 h-6 animate-spin text-blue-500 mb-2" />
+                           ) : formData.fatura_url ? (
+                               <Check className="w-6 h-6 text-blue-500 mb-2" />
+                           ) : (
+                               <Upload className="w-6 h-6 text-slate-400 mb-2" />
+                           )}
+                           <span className="text-xs font-bold text-slate-600 text-center">
+                               {uploadingFatura ? 'A carregar...' : formData.fatura_url ? 'Fatura Anexada' : 'Clique para anexar Fatura'}
+                           </span>
+                       </label>
+                   </div>
+                   
+                   <div className="flex flex-col gap-3">
+                       <span className="text-xs font-black text-slate-950 dark:text-white uppercase tracking-wider flex items-center gap-2">
+                           <FileImage className="w-4 h-4 text-emerald-500" />
+                           Comprovativo
+                       </span>
+                       <label className={`
+                           flex flex-col items-center justify-center border-2 border-dashed rounded-2xl p-6 transition-all cursor-pointer
+                           ${formData.comprovativo_url ? 'border-emerald-500/50 bg-emerald-50/50' : 'border-slate-300 hover:border-emerald-400 hover:bg-emerald-50'}
+                           ${uploadingComprovativo ? 'opacity-50 pointer-events-none' : ''}
+                       `}>
+                           <input type="file" accept="image/*,application/pdf" className="hidden" onChange={(e) => handleFileUpload(e, 'comprovativo')} />
+                           {uploadingComprovativo ? (
+                               <Loader2 className="w-6 h-6 animate-spin text-emerald-500 mb-2" />
+                           ) : formData.comprovativo_url ? (
+                               <Check className="w-6 h-6 text-emerald-500 mb-2" />
+                           ) : (
+                               <Upload className="w-6 h-6 text-slate-400 mb-2" />
+                           )}
+                           <span className="text-xs font-bold text-slate-600 text-center">
+                               {uploadingComprovativo ? 'A carregar...' : formData.comprovativo_url ? 'Comprovativo Anexado' : 'Clique para anexar Comprovativo'}
+                           </span>
+                       </label>
+                   </div>
                 </div>
 
                 <button
