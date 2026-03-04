@@ -1,5 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
+import { Player } from '@remotion/player';
+import { DianaVideo } from '../remotion/DianaVideo';
 import { 
   ShoppingBag, 
   Search, 
@@ -232,8 +234,8 @@ function LojaContent() {
               <Menu className="w-5 h-5 text-black dark:text-white" />
             </button>
             <div className="flex flex-col">
-               <h1 className="text-2xl font-black tracking-tighter uppercase leading-none">O4U BRAND</h1>
-               <p className="text-[8px] font-black text-[#827b14] uppercase tracking-[0.5em] mt-1.5 ml-0.5">EST. 2024</p>
+              <span className="text-2xl font-black tracking-tighter text-slate-950 dark:text-white leading-none">DianaLoja</span>
+              <span className="text-[10px] font-black text-[#827b14] uppercase tracking-[0.3em] mt-1 ml-0.5">EST. 2024</span>
             </div>
           </div>
 
@@ -268,37 +270,47 @@ function LojaContent() {
 
       <main className="flex-1 flex flex-col">
         {/* Hero Section */}
-        <section className="relative h-[85vh] overflow-hidden group">
-           <img 
-            src="https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?auto=format&fit=crop&q=80&w=2600" 
-            alt="Hero" 
-            className="w-full h-full object-cover transition-transform duration-[15s] ease-out group-hover:scale-105"
-           />
-           <div className="absolute inset-0 bg-black/10 transition-colors group-hover:bg-black/20" />
-           <div className="absolute inset-0 p-24 flex flex-col justify-center items-center text-center space-y-8">
-              <motion.div 
-                initial={{ opacity: 0, y: 30 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 1 }}
-                className="space-y-6 max-w-4xl"
-              >
-                 <span className="text-white text-[12px] font-black uppercase tracking-[0.5em] mb-4 drop-shadow-lg inline-block border-b border-white/30 pb-2">SS24 COLLECTION</span>
-                 <h2 className="text-7xl md:text-9xl font-black text-white tracking-tighter leading-[0.85] uppercase drop-shadow-2xl">
-                    THE ART OF <br/> DRESSING
-                 </h2>
-                 <p className="text-white/80 text-[10px] font-black uppercase tracking-[0.4em] max-w-lg mx-auto leading-relaxed">
-                    Descubra a nossa coleção premium com materiais de alta qualidade e design contemporâneo.
-                 </p>
-                 <div className="pt-10 flex gap-6 justify-center">
-                    <button className="px-12 py-5 bg-white text-black font-black uppercase tracking-[0.3em] text-[10px] hover:bg-[#827b14] hover:text-white transition-all shadow-2xl active:scale-95">
-                       SHOP NOW
-                    </button>
-                    <button className="px-12 py-5 bg-transparent border-2 border-white text-white font-black uppercase tracking-[0.3em] text-[10px] hover:bg-white hover:text-black transition-all active:scale-95">
-                       COLLECTION
-                    </button>
-                 </div>
-              </motion.div>
-           </div>
+        <section className="relative h-[85vh] overflow-hidden bg-black">
+          <Player
+            component={DianaVideo}
+            durationInFrames={300}
+            fps={30}
+            compositionWidth={1920}
+            compositionHeight={1080}
+            style={{
+              width: '100%',
+              height: '100%',
+            }}
+            loop
+            autoPlay
+            controls={false}
+          />
+          <div className="absolute inset-0 z-20 flex flex-col items-center justify-center text-center p-6 bg-gradient-to-b from-transparent via-transparent to-black/60 pointer-events-none">
+            <motion.div
+              initial={{ opacity: 0, y: 100 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.5, duration: 1, ease: 'easeOut' }}
+              className="space-y-12"
+            >
+              <div className="space-y-2">
+                <span className="text-[10px] font-black text-[#827b14] uppercase tracking-[0.5em] block animate-pulse">SS25 COLLECTION</span>
+                <h2 className="text-[12vw] font-black text-white leading-[0.8] tracking-tighter uppercase whitespace-pre-line drop-shadow-2xl">
+                  ESSENCE<br/>OF STYLE
+                </h2>
+              </div>
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-6 pt-12 pointer-events-auto">
+                <button className="px-14 py-6 bg-white text-black font-black uppercase tracking-[0.4em] text-[10px] shadow-2xl hover:bg-[#827b14] hover:text-white transition-all transform hover:-translate-y-1">
+                  Shop Now
+                </button>
+                <button className="px-14 py-6 bg-transparent border-2 border-white/20 text-white font-black uppercase tracking-[0.4em] text-[10px] backdrop-blur-md hover:bg-white hover:text-black transition-all transform hover:-translate-y-1">
+                  Collection
+                </button>
+              </div>
+            </motion.div>
+          </div>
+          <div className="absolute bottom-12 left-1/2 -translate-x-1/2 z-20 animate-bounce opacity-50">
+             <div className="w-px h-16 bg-white/30" />
+          </div>
         </section>
 
         {/* Filters & Grid Wrapper */}
