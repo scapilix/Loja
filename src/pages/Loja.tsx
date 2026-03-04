@@ -380,7 +380,7 @@ function LojaContent() {
       <footer className="bg-[#F9F9F9] dark:bg-white/5 px-24 py-24 mt-24">
          <div className="max-w-[1600px] mx-auto grid grid-cols-1 md:grid-cols-4 gap-20">
             <div className="space-y-8">
-               <h4 className="text-xl font-black uppercase tracking-tighter">O4U BRAND</h4>
+               <h4 className="text-xl font-black uppercase tracking-tighter">DianaLoja</h4>
                <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest leading-loose">
                   Elevando o seu estilo através de designs minimalistas e qualidade superior em cada detalhe.
                </p>
@@ -421,7 +421,7 @@ function LojaContent() {
             </div>
          </div>
          <div className="mt-24 pt-10 border-t border-slate-200 dark:border-white/10 text-center">
-            <p className="text-[8px] font-black text-slate-400 uppercase tracking-[0.5em]">© 2024 O4U BRAND - ALL RIGHTS RESERVED</p>
+            <p className="text-[8px] font-black text-slate-400 uppercase tracking-[0.5em]">© 2024 DianaLoja - ALL RIGHTS RESERVED</p>
          </div>
       </footer>
 
