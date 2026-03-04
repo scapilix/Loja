@@ -10,6 +10,7 @@ interface ProductCatalogItem {
   fornecedor: string;
   image_url?: string;
   description?: string;
+  categoria?: string;
 }
 
 interface ExcelData {

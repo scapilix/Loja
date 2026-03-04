@@ -28,6 +28,7 @@ interface ProductCatalogItem {
   fornecedor: string;
   image_url?: string;
   description?: string;
+  categoria?: string;
 }
 
 export default function BaseItems() {
@@ -49,7 +50,8 @@ export default function BaseItems() {
     lucro_meu_faturado: 0,
     fornecedor: '',
     image_url: '',
-    description: ''
+    description: '',
+    categoria: ''
   });
   
   // Combine catalogs and handle overrides
@@ -257,6 +259,7 @@ export default function BaseItems() {
                 <th className="px-6 py-6 text-right">Custo Base</th>
                 <th className="px-6 py-6 text-right">Margem</th>
                 <th className="px-6 py-6 text-right">IVA</th>
+                <th className="px-10 py-6 text-right">Categoria</th>
                 <th className="px-10 py-6 text-right">Fornecedor</th>
                 <th className="px-10 py-6 text-center">Gestão</th>
               </tr>
@@ -309,6 +312,11 @@ export default function BaseItems() {
                   <td className="px-6 py-6 text-right">
                      <span className="font-black text-[10px] text-slate-300">
                         {formatPercentage(product.iva)}
+                     </span>
+                  </td>
+                  <td className="px-10 py-6 text-right">
+                     <span className="font-black text-[9px] uppercase tracking-widest text-[#827b14] bg-[#827b14]/5 px-2 py-1 rounded-sm">
+                        {product.categoria || 'N/A'}
                      </span>
                   </td>
                   <td className="px-10 py-6 text-right">
@@ -436,6 +444,16 @@ export default function BaseItems() {
                               step="0.01"
                               value={isAddingNew ? newItem.pvp_cica : editingItem?.pvp_cica} 
                               onChange={(e) => isAddingNew ? setNewItem({ ...newItem, pvp_cica: parseFloat(e.target.value) }) : setEditingItem(prev => prev ? ({ ...prev, pvp_cica: parseFloat(e.target.value) }) : null)} 
+                              className="w-full px-0 py-3 bg-transparent border-b-2 border-slate-100 dark:border-white/10 focus:border-[#827b14] outline-none transition-all font-black text-lg uppercase tracking-tight" 
+                            />
+                        </div>
+                        <div className="space-y-3">
+                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.25em] ml-1">CATEGORIA</label>
+                            <input 
+                              type="text" 
+                              placeholder="ex: Vestidos, Calças..."
+                              value={isAddingNew ? newItem.categoria : editingItem?.categoria} 
+                              onChange={(e) => isAddingNew ? setNewItem({ ...newItem, categoria: e.target.value }) : setEditingItem(prev => prev ? ({ ...prev, categoria: e.target.value }) : null)} 
                               className="w-full px-0 py-3 bg-transparent border-b-2 border-slate-100 dark:border-white/10 focus:border-[#827b14] outline-none transition-all font-black text-lg uppercase tracking-tight" 
                             />
                         </div>

@@ -25,6 +25,7 @@ function LojaContent() {
   const { items, total, itemCount, clearCart, addToCart } = useCart();
   
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [zoomedProduct, setZoomedProduct] = useState<any>(null);
   const [checkoutStep, setCheckoutStep] = useState<'browsing' | 'checkout' | 'success'>('browsing');
@@ -63,15 +64,32 @@ function LojaContent() {
       return { ...p, image_url };
     });
   }, [data.products_catalog, data.manual_products_catalog]);
+  
+  const categories = useMemo(() => {
+    const cats = new Set<string>();
+    allProducts.forEach(p => {
+      if (p.categoria) cats.add(p.categoria);
+    });
+    return Array.from(cats).sort();
+  }, [allProducts]);
 
   const filteredProducts = useMemo(() => {
-    if (!searchTerm.trim()) return allProducts;
-    const term = searchTerm.toLowerCase();
-    return allProducts.filter(p => 
-      p.ref.toLowerCase().includes(term) || 
-      (p.nome_artigo && p.nome_artigo.toLowerCase().includes(term))
-    );
-  }, [allProducts, searchTerm]);
+    let filtered = allProducts;
+    
+    if (selectedCategory) {
+      filtered = filtered.filter(p => p.categoria === selectedCategory);
+    }
+    
+    if (searchTerm.trim()) {
+      const term = searchTerm.toLowerCase();
+      filtered = filtered.filter(p => 
+        p.ref.toLowerCase().includes(term) || 
+        (p.nome_artigo && p.nome_artigo.toLowerCase().includes(term))
+      );
+    }
+    
+    return filtered;
+  }, [allProducts, searchTerm, selectedCategory]);
 
   const handleCheckout = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -242,10 +260,45 @@ function LojaContent() {
           </div>
 
           <nav className="hidden lg:flex items-center gap-12 text-[10px] font-black uppercase tracking-[0.25em] text-slate-400">
-             <a href="#" className="hover:text-black dark:hover:text-white transition-colors border-b-2 border-transparent hover:border-[#827b14] pb-1">Novidades</a>
+             <button 
+               onClick={() => setSelectedCategory(null)}
+               className={`hover:text-black dark:hover:text-white transition-colors border-b-2 pb-1 ${!selectedCategory ? 'text-black dark:text-white border-[#827b14]' : 'border-transparent'}`}
+             >
+               Ver Tudo
+             </button>
+             
+             {/* Dynamic Categorias Dropdown */}
+             <div className="relative group py-8">
+               <button className={`flex items-center gap-2 hover:text-black dark:hover:text-white transition-colors border-b-2 pb-1 ${selectedCategory ? 'text-black dark:text-white border-[#827b14]' : 'border-transparent'}`}>
+                 Roupas
+               </button>
+               
+               <div className="absolute top-[calc(100%-10px)] left-0 w-64 bg-white dark:bg-slate-900 shadow-2xl border border-slate-100 dark:border-white/5 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 translate-y-2 group-hover:translate-y-0 z-[100]">
+                  <div className="py-4">
+                    <button 
+                      onClick={() => setSelectedCategory(null)}
+                      className="w-full text-left px-8 py-4 hover:bg-slate-50 dark:hover:bg-white/5 transition-colors border-b border-slate-50 dark:border-white/5"
+                    >
+                      <span className="text-slate-950 dark:text-white">VER TUDO</span>
+                    </button>
+                    {categories.map(cat => (
+                      <button 
+                        key={cat}
+                        onClick={() => setSelectedCategory(cat)}
+                        className={`w-full text-left px-8 py-4 hover:bg-slate-50 dark:hover:bg-white/5 transition-colors border-b border-slate-50 dark:border-white/5 last:border-0 ${selectedCategory === cat ? 'bg-slate-50 dark:bg-white/5' : ''}`}
+                      >
+                         <span className={selectedCategory === cat ? 'text-[#827b14]' : 'text-slate-950 dark:text-white'}>
+                           {cat.toUpperCase()}
+                         </span>
+                      </button>
+                    ))}
+                  </div>
+               </div>
+             </div>
+
              <a href="#" className="hover:text-black dark:hover:text-white transition-colors border-b-2 border-transparent hover:border-[#827b14] pb-1">Homem</a>
              <a href="#" className="hover:text-black dark:hover:text-white transition-colors border-b-2 border-transparent hover:border-[#827b14] pb-1">Mulher</a>
-             <a href="#" className="hover:text-black dark:hover:text-white transition-colors border-b-2 border-transparent hover:border-[#827b14] pb-1">Acessórios</a>
+             <a href="#" className="hover:text-black dark:hover:text-white transition-colors border-b-2 border-transparent hover:border-[#827b14] pb-1">Novidades</a>
           </nav>
 
           <div className="flex items-center gap-8">
