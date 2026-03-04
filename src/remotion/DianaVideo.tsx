@@ -38,41 +38,6 @@ export const DianaVideo: React.FC = () => {
                   )})`,
                 }}
               />
-              
-              {/* Text Overlays */}
-              <AbsoluteFill style={{ 
-                justifyContent: 'center', 
-                alignItems: 'center',
-                backgroundColor: 'rgba(0,0,0,0.2)'
-              }}>
-                <div style={{
-                  color: 'white',
-                  fontFamily: 'system-ui, -apple-system, sans-serif',
-                  textAlign: 'center',
-                  opacity: interpolate(
-                    frame - startFrame,
-                    [10, 25, framesPerImage - 25, framesPerImage - 10],
-                    [0, 1, 1, 0],
-                    { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' }
-                  )
-                }}>
-                  <h1 style={{ 
-                    fontSize: 120, 
-                    fontWeight: 900, 
-                    margin: 0, 
-                    letterSpacing: '-0.05em',
-                    textTransform: 'uppercase'
-                  }}>DianaLoja</h1>
-                  <p style={{ 
-                    fontSize: 40, 
-                    fontWeight: 700, 
-                    margin: 0, 
-                    letterSpacing: '0.4em',
-                    color: '#827b14',
-                    textTransform: 'uppercase'
-                  }}>Nova Coleção</p>
-                </div>
-              </AbsoluteFill>
             </AbsoluteFill>
           </Sequence>
         );

@@ -284,6 +284,7 @@ function LojaContent() {
               height: '100%',
               objectFit: 'cover',
             }}
+            className="[&_canvas]:object-cover [&_canvas]:w-full [&_canvas]:h-full"
             loop
             autoPlay
             controls={false}
