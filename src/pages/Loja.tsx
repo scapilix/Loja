@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { Player } from '@remotion/player';
 import { DianaVideo } from '../remotion/DianaVideo';
@@ -35,6 +35,16 @@ function LojaContent() {
   const [customerName, setCustomerName] = useState('');
   const [customerInsta, setCustomerInsta] = useState('');
   const [customerAddress, setCustomerAddress] = useState('');
+  
+  const productsSectionRef = useRef<HTMLDivElement>(null);
+  
+  const handleCategoryChange = (category: string | null) => {
+    setSelectedCategory(category);
+    // Smooth scroll to objects section
+    if (productsSectionRef.current) {
+      productsSectionRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
   
   // Responsive Hero Dimensions
   const [heroDimensions, setHeroDimensions] = useState({ 
@@ -278,7 +288,7 @@ function LojaContent() {
 
           <nav className="hidden lg:flex items-center gap-12 text-[10px] font-black uppercase tracking-[0.25em] text-slate-400">
              <button 
-               onClick={() => setSelectedCategory(null)}
+               onClick={() => handleCategoryChange(null)}
                className={`hover:text-black dark:hover:text-white transition-colors border-b-2 pb-1 ${!selectedCategory ? 'text-black dark:text-white border-[#827b14]' : 'border-transparent'}`}
              >
                Ver Tudo
@@ -290,21 +300,21 @@ function LojaContent() {
                  Roupas
                </button>
                
-               <div className="absolute top-[calc(100%-10px)] left-0 w-64 bg-white dark:bg-slate-900 shadow-2xl border border-slate-100 dark:border-white/5 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 translate-y-2 group-hover:translate-y-0 z-[100]">
-                  <div className="py-4">
+               <div className="absolute top-[calc(100%-15px)] left-0 w-64 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl shadow-[0_20px_50px_rgba(0,0,0,0.15)] border border-slate-100 dark:border-white/5 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-500 translate-y-4 group-hover:translate-y-0 z-[100] rounded-[2rem] overflow-hidden">
+                  <div className="py-6">
                     <button 
-                      onClick={() => setSelectedCategory(null)}
-                      className="w-full text-left px-8 py-4 hover:bg-slate-50 dark:hover:bg-white/5 transition-colors border-b border-slate-50 dark:border-white/5"
+                      onClick={() => handleCategoryChange(null)}
+                      className="w-full text-left px-10 py-5 hover:bg-slate-50 dark:hover:bg-white/5 transition-all border-b border-slate-50 dark:border-white/5 group/item"
                     >
-                      <span className="text-slate-950 dark:text-white">VER TUDO</span>
+                      <span className="text-slate-950 dark:text-white group-hover/item:translate-x-1 inline-block transition-transform">VER TUDO</span>
                     </button>
                     {categories.map(cat => (
                       <button 
                         key={cat}
-                        onClick={() => setSelectedCategory(cat)}
-                        className={`w-full text-left px-8 py-4 hover:bg-slate-50 dark:hover:bg-white/5 transition-colors border-b border-slate-50 dark:border-white/5 last:border-0 ${selectedCategory === cat ? 'bg-slate-50 dark:bg-white/5' : ''}`}
+                        onClick={() => handleCategoryChange(cat)}
+                        className={`w-full text-left px-10 py-5 hover:bg-slate-50 dark:hover:bg-white/5 transition-all border-b border-slate-50 dark:border-white/5 last:border-0 group/item ${selectedCategory === cat ? 'bg-slate-50 dark:bg-white/5' : ''}`}
                       >
-                         <span className={selectedCategory === cat ? 'text-[#827b14]' : 'text-slate-950 dark:text-white'}>
+                         <span className={`inline-block transition-transform group-hover/item:translate-x-1 ${selectedCategory === cat ? 'text-[#827b14]' : 'text-slate-950 dark:text-white'}`}>
                            {cat.toUpperCase()}
                          </span>
                       </button>
@@ -375,7 +385,7 @@ function LojaContent() {
         </section>
 
         {/* Filters & Grid Wrapper */}
-        <div className="max-[1600px]:px-10 px-24 py-24 space-y-24">
+        <div ref={productsSectionRef} className="max-[1600px]:px-10 px-24 py-24 space-y-24">
            {/* Filters Bar */}
            <div className="flex flex-col md:flex-row gap-12 items-end justify-between border-b border-slate-100 dark:border-white/5 pb-10">
               <div className="space-y-4">
