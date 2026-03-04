@@ -53,6 +53,7 @@ interface DataContextType {
   addProduct: (product: ProductCatalogItem) => Promise<void>;
   addCustomer: (customer: any) => Promise<void>;
   addSale: (sale: any) => Promise<void>;
+  updateProduct: (ref: string, updates: Partial<ProductCatalogItem>) => Promise<void>;
   refreshPurchases: () => Promise<void>;
 }
 
@@ -190,10 +191,45 @@ export function DataProvider({ children, initialData }: { children: ReactNode; i
     }
   };
 
+  const updateProduct = async (ref: string, updates: Partial<ProductCatalogItem>) => {
+    try {
+      const currentManual = [...(data.manual_products_catalog || [])];
+      const existingManualIdx = currentManual.findIndex(p => p.ref === ref);
+      
+      let newManual;
+      if (existingManualIdx > -1) {
+        // Update existing manual product
+        const updatedProduct = { ...currentManual[existingManualIdx], ...updates };
+        currentManual[existingManualIdx] = updatedProduct;
+        newManual = currentManual;
+      } else {
+        // Check in Excel catalog
+        const excelProduct = (data.products_catalog || []).find(p => p.ref === ref);
+        if (excelProduct) {
+          // If editing an Excel product for the first time, add it to manual catalog as an override
+          const newProduct = { ...excelProduct, ...updates };
+          newManual = [...currentManual, newProduct];
+        } else {
+          throw new Error('Produto não encontrado');
+        }
+      }
+
+      const { error } = await supabase
+        .from('loja_app_state')
+        .upsert({ key: 'manual_products_catalog', value: newManual });
+
+      if (error) throw error;
+      setData(prev => ({ ...prev, manual_products_catalog: newManual }));
+    } catch (err) {
+      console.error('Error updating product:', err);
+      throw err;
+    }
+  };
+
   const refreshPurchases = fetchPurchases;
 
   return (
-    <DataContext.Provider value={{ data, setData, isLoading, setIsLoading, addPurchase, addProduct, addCustomer, addSale, refreshPurchases }}>
+    <DataContext.Provider value={{ data, setData, isLoading, setIsLoading, addPurchase, addProduct, addCustomer, addSale, updateProduct, refreshPurchases }}>
       {children}
     </DataContext.Provider>
   );

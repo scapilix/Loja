@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { ShoppingCart, Plus } from 'lucide-react';
+import { Expand } from 'lucide-react';
 
 interface Product {
   ref: string;
@@ -21,60 +21,63 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart }
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
+      initial={{ opacity: 0, y: 30 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
-      whileHover={{ y: -5 }}
-      className="group relative bg-white dark:bg-slate-900 rounded-[2.5rem] overflow-hidden border border-slate-200 dark:border-white/10 shadow-sm hover:shadow-2xl hover:shadow-purple-500/10 transition-all duration-500"
+      className="group flex flex-col space-y-5"
     >
-      <div className="aspect-[4/5] overflow-hidden relative">
+      {/* Image Container */}
+      <div className="aspect-[3/4] overflow-hidden relative bg-[#F9F9F9] dark:bg-slate-900 cursor-pointer">
         {product.image_url ? (
           <img
             src={product.image_url}
             alt={product.nome_artigo}
-            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+            className="w-full h-full object-cover mix-blend-multiply dark:mix-blend-normal transition-transform duration-[1.5s] ease-out group-hover:scale-110"
           />
         ) : (
-          <div className="w-full h-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
-            <span className="text-slate-400 font-bold uppercase tracking-widest text-xs">No Image</span>
+          <div className="w-full h-full flex items-center justify-center">
+            <span className="text-slate-300 font-bold uppercase tracking-[0.2em] text-[10px]">Image Unavailable</span>
           </div>
         )}
-        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-500" />
         
-        <button
-          onClick={() => onAddToCart(product)}
-          className="absolute bottom-6 right-6 w-12 h-12 bg-purple-600 text-white rounded-2xl flex items-center justify-center shadow-lg transform translate-y-12 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-500 hover:bg-purple-700 active:scale-90"
-        >
-          <Plus className="w-6 h-6" />
-        </button>
-      </div>
+        {/* Hover Overlays */}
+        <div className="absolute inset-x-0 bottom-0 p-6 flex justify-between items-end translate-y-full group-hover:translate-y-0 transition-transform duration-500 ease-out">
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onAddToCart(product);
+            }}
+            className="w-full py-4 bg-black text-white dark:bg-white dark:text-black font-black uppercase tracking-[0.2em] text-[10px] shadow-2xl hover:bg-[#827b14] dark:hover:bg-[#827b14] dark:hover:text-white transition-colors"
+          >
+            Adicionar +
+          </button>
+        </div>
 
-      <div className="p-8 space-y-4">
-        <div className="flex justify-between items-start gap-4">
-          <div className="space-y-1">
-            <h3 className="font-black text-slate-900 dark:text-white text-lg leading-tight uppercase tracking-tight group-hover:text-purple-600 transition-colors">
-              {product.nome_artigo}
-            </h3>
-            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{product.ref}</p>
-          </div>
-          <p className="font-black text-purple-600 dark:text-purple-400 text-xl whitespace-nowrap">
-            {formatCurrency(product.pvp_cica)}
-          </p>
+        {/* Top Badges */}
+        <div className="absolute top-4 left-4 flex flex-col gap-2">
+           <span className="bg-white/80 dark:bg-black/80 backdrop-blur-md px-3 py-1 text-[8px] font-black uppercase tracking-widest text-[#827b14] border border-[#827b14]/20">
+              New Collection
+           </span>
         </div>
         
-        {product.description && (
-          <p className="text-slate-500 dark:text-slate-400 text-sm font-medium line-clamp-2">
-            {product.description}
-          </p>
-        )}
+        <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity duration-500">
+           <div className="w-8 h-8 bg-white/90 dark:bg-black/90 backdrop-blur-md flex items-center justify-center text-black dark:text-white">
+              <Expand className="w-3 h-3" />
+           </div>
+        </div>
+      </div>
 
-        <button
-          onClick={() => onAddToCart(product)}
-          className="w-full py-4 mt-2 bg-slate-50 dark:bg-white/5 text-slate-900 dark:text-white rounded-2xl font-black uppercase tracking-widest text-[10px] hover:bg-purple-600 hover:text-white transition-all duration-300 flex items-center justify-center gap-2 border border-slate-100 dark:border-white/5"
-        >
-          <ShoppingCart className="w-4 h-4" />
-          Adicionar ao Carrinho
-        </button>
+      {/* Details */}
+      <div className="flex flex-col space-y-1 items-center text-center">
+        <p className="text-[10px] font-black text-[#827b14] uppercase tracking-[0.3em] mb-1">
+          {product.ref}
+        </p>
+        <h3 className="font-bold text-slate-950 dark:text-white text-sm uppercase tracking-tight group-hover:underline decoration-1 underline-offset-4">
+          {product.nome_artigo}
+        </h3>
+        <p className="font-black text-slate-900 dark:text-slate-400 text-sm tracking-tighter mt-2">
+          {formatCurrency(product.pvp_cica)}
+        </p>
       </div>
     </motion.div>
   );
