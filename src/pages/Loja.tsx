@@ -35,6 +35,23 @@ function LojaContent() {
   const [customerName, setCustomerName] = useState('');
   const [customerInsta, setCustomerInsta] = useState('');
   const [customerAddress, setCustomerAddress] = useState('');
+  
+  // Responsive Hero Dimensions
+  const [heroDimensions, setHeroDimensions] = useState({ 
+    width: typeof window !== 'undefined' ? window.innerWidth : 1920, 
+    height: typeof window !== 'undefined' ? Math.floor(window.innerHeight * 0.85) : 1080 
+  });
+
+  React.useEffect(() => {
+    const updateDimensions = () => {
+      setHeroDimensions({
+        width: window.innerWidth,
+        height: Math.floor(window.innerHeight * 0.85)
+      });
+    };
+    window.addEventListener('resize', updateDimensions);
+    return () => window.removeEventListener('resize', updateDimensions);
+  }, []);
 
   const allProducts = useMemo(() => {
     const excelCatalog = data.products_catalog || [];
@@ -330,8 +347,8 @@ function LojaContent() {
             component={DianaVideo}
             durationInFrames={300}
             fps={30}
-            compositionWidth={1920}
-            compositionHeight={1080}
+            compositionWidth={heroDimensions.width}
+            compositionHeight={heroDimensions.height}
             style={{
               width: '100%',
               height: '100%',
