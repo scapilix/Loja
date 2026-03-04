@@ -18,6 +18,7 @@ import { useData } from '../contexts/DataContext';
 import { useCart, CartProvider } from '../contexts/CartContext';
 import { ProductCard } from '../components/Loja/ProductCard';
 import { Cart } from '../components/Loja/Cart';
+import { ImageZoomModal } from '../components/Loja/ImageZoomModal';
 
 function LojaContent() {
   const { data, addSale } = useData();
@@ -25,6 +26,7 @@ function LojaContent() {
   
   const [searchTerm, setSearchTerm] = useState('');
   const [isCartOpen, setIsCartOpen] = useState(false);
+  const [zoomedProduct, setZoomedProduct] = useState<any>(null);
   const [checkoutStep, setCheckoutStep] = useState<'browsing' | 'checkout' | 'success'>('browsing');
   const [loading, setLoading] = useState(false);
 
@@ -340,6 +342,7 @@ function LojaContent() {
                   key={product.ref} 
                   product={product} 
                   onAddToCart={addToCart} 
+                  onExpand={setZoomedProduct}
                 />
               ))}
            </div>
@@ -420,6 +423,12 @@ function LojaContent() {
           setIsCartOpen(false);
           setCheckoutStep('checkout');
         }}
+      />
+      <ImageZoomModal 
+        isOpen={!!zoomedProduct}
+        onClose={() => setZoomedProduct(null)}
+        imageUrl={zoomedProduct?.image_url || ''}
+        productName={zoomedProduct?.nome_artigo || ''}
       />
     </div>
   );

@@ -10,10 +10,12 @@ import {
   Loader2,
   Trash2,
   Plus,
-  Database
+  Database,
+  Expand
 } from 'lucide-react';
 import { useData } from '../contexts/DataContext';
 import { uploadToSupabase } from '../lib/upload';
+import { ImageZoomModal } from '../components/Loja/ImageZoomModal';
 import { supabase } from '../lib/supabase';
 
 interface ProductCatalogItem {
@@ -35,6 +37,7 @@ export default function BaseItems() {
   const [isAddingNew, setIsAddingNew] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  const [zoomedProduct, setZoomedProduct] = useState<any>(null);
   const [isMigrating, setIsMigrating] = useState(false);
 
   const [newItem, setNewItem] = useState<ProductCatalogItem>({
@@ -263,9 +266,17 @@ export default function BaseItems() {
                 <tr key={`${product.ref}-${index}`} className="group hover:bg-[#F9F9F9] dark:hover:bg-white/5 transition-colors">
                   <td className="px-10 py-6">
                     <div className="flex items-center gap-6">
-                        <div className="w-16 h-20 bg-slate-50 dark:bg-white/5 overflow-hidden border border-slate-100 dark:border-white/10 shrink-0">
+                        <div className="w-16 h-20 bg-slate-50 dark:bg-white/5 overflow-hidden border border-slate-100 dark:border-white/10 shrink-0 relative group/img">
                             {product.image_url ? (
-                              <img src={product.image_url} alt={product.nome_artigo} className="w-full h-full object-cover mix-blend-multiply dark:mix-blend-normal" />
+                              <>
+                                <img src={product.image_url} alt={product.nome_artigo} className="w-full h-full object-cover mix-blend-multiply dark:mix-blend-normal" />
+                                <button 
+                                  onClick={() => setZoomedProduct(product)}
+                                  className="absolute inset-0 bg-black/40 opacity-0 group-hover/img:opacity-100 transition-opacity flex items-center justify-center text-white"
+                                >
+                                  <Expand className="w-4 h-4" />
+                                </button>
+                              </>
                             ) : (
                               <div className="w-full h-full flex items-center justify-center text-[8px] font-black text-slate-300 uppercase tracking-tighter">NO IMG</div>
                             )}
@@ -476,6 +487,12 @@ export default function BaseItems() {
           </div>
         )}
       </AnimatePresence>
+      <ImageZoomModal 
+        isOpen={!!zoomedProduct}
+        onClose={() => setZoomedProduct(null)}
+        imageUrl={zoomedProduct?.image_url || ''}
+        productName={zoomedProduct?.nome_artigo || ''}
+      />
     </motion.div>
   );
 }

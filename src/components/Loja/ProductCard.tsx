@@ -13,9 +13,10 @@ interface Product {
 interface ProductCardProps {
   product: Product;
   onAddToCart: (product: Product) => void;
+  onExpand?: (product: Product) => void;
 }
 
-export const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart }) => {
+export const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart, onExpand }) => {
   const formatCurrency = (val: number) =>
     val?.toLocaleString('pt-PT', { style: 'currency', currency: 'EUR' });
 
@@ -60,11 +61,17 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart }
            </span>
         </div>
         
-        <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity duration-500">
-           <div className="w-8 h-8 bg-white/90 dark:bg-black/90 backdrop-blur-md flex items-center justify-center text-black dark:text-white">
+        <button 
+          onClick={(e) => {
+            e.stopPropagation();
+            onExpand?.(product);
+          }}
+          className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-10"
+        >
+           <div className="w-8 h-8 bg-white/90 dark:bg-black/90 backdrop-blur-md flex items-center justify-center text-black dark:text-white hover:bg-[#827b14] hover:text-white transition-colors">
               <Expand className="w-3 h-3" />
            </div>
-        </div>
+        </button>
       </div>
 
       {/* Details */}
