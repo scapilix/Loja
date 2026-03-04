@@ -286,27 +286,14 @@ function LojaContent() {
             controls={false}
           />
           <div className="absolute inset-0 z-20 flex flex-col items-center justify-center text-center p-6 bg-gradient-to-b from-transparent via-transparent to-black/60 pointer-events-none">
-            <motion.div
-              initial={{ opacity: 0, y: 100 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.5, duration: 1, ease: 'easeOut' }}
-              className="space-y-12"
-            >
-              <div className="space-y-2">
-                <span className="text-[10px] font-black text-[#827b14] uppercase tracking-[0.5em] block animate-pulse">SS25 COLLECTION</span>
-                <h2 className="text-[12vw] font-black text-white leading-[0.8] tracking-tighter uppercase whitespace-pre-line drop-shadow-2xl">
-                  ESSENCE<br/>OF STYLE
-                </h2>
-              </div>
-              <div className="flex flex-col sm:flex-row items-center justify-center gap-6 pt-12 pointer-events-auto">
-                <button className="px-14 py-6 bg-white text-black font-black uppercase tracking-[0.4em] text-[10px] shadow-2xl hover:bg-[#827b14] hover:text-white transition-all transform hover:-translate-y-1">
-                  Shop Now
-                </button>
-                <button className="px-14 py-6 bg-transparent border-2 border-white/20 text-white font-black uppercase tracking-[0.4em] text-[10px] backdrop-blur-md hover:bg-white hover:text-black transition-all transform hover:-translate-y-1">
-                  Collection
-                </button>
-              </div>
-            </motion.div>
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-6 pt-12 pointer-events-auto mt-auto mb-20">
+              <button className="px-14 py-6 bg-white text-black font-black uppercase tracking-[0.4em] text-[10px] shadow-2xl hover:bg-[#827b14] hover:text-white transition-all transform hover:-translate-y-1">
+                Shop Now
+              </button>
+              <button className="px-14 py-6 bg-transparent border-2 border-white/20 text-white font-black uppercase tracking-[0.4em] text-[10px] backdrop-blur-md hover:bg-white hover:text-black transition-all transform hover:-translate-y-1">
+                Collection
+              </button>
+            </div>
           </div>
           <div className="absolute bottom-12 left-1/2 -translate-x-1/2 z-20 animate-bounce opacity-50">
              <div className="w-px h-16 bg-white/30" />
