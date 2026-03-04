@@ -48,10 +48,11 @@ export const SmartDateFilter = <T extends FilterState>({
 
   const handleYearSelect = (y: string) => {
     setFilters(prev => ({ 
+      ...prev,
       year: prev.year === y ? '' : y, 
       month: '', 
       days: [] 
-    }));
+    } as T));
   };
 
   const handleMonthSelect = (m: string) => {
@@ -87,7 +88,7 @@ export const SmartDateFilter = <T extends FilterState>({
 
   const clearFilters = (e: React.MouseEvent) => {
     e.stopPropagation();
-    setFilters(prev => ({ ...prev, year: '', month: '', days: [] }));
+    setFilters(prev => ({ ...prev, year: '', month: '', days: [] } as T));
     setIsOpen(false);
   };
 
