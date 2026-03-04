@@ -51,6 +51,7 @@ interface DataContextType {
   setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
   addPurchase: (purchase: Omit<Purchase, 'id' | 'created_at'>) => Promise<void>;
   addProduct: (product: ProductCatalogItem) => Promise<void>;
+  deleteProduct: (ref: string) => Promise<void>;
   addCustomer: (customer: any) => Promise<void>;
   addSale: (sale: any) => Promise<void>;
   updateProduct: (ref: string, updates: Partial<ProductCatalogItem>) => Promise<void>;
@@ -124,9 +125,11 @@ export function DataProvider({ children, initialData }: { children: ReactNode; i
     try {
       const currentManual = data.manual_products_catalog || [];
       // Check if exists
-      if (currentManual.find(p => p.ref === product.ref)) return;
+      if (currentManual.find(p => p.ref === product.ref)) {
+        throw new Error('Produto com esta referência já existe');
+      }
 
-      const newManual = [...currentManual, product];
+      const newManual = [product, ...currentManual];
       
       // Persist to Supabase State
       const { error } = await supabase
@@ -139,6 +142,25 @@ export function DataProvider({ children, initialData }: { children: ReactNode; i
       setData(prev => ({ ...prev, manual_products_catalog: newManual }));
     } catch (err) {
       console.error('Error adding product:', err);
+      throw err;
+    }
+  };
+
+  const deleteProduct = async (ref: string) => {
+    try {
+      const currentManual = (data.manual_products_catalog || []).filter(p => p.ref !== ref);
+      
+      // Persist to Supabase State
+      const { error } = await supabase
+        .from('loja_app_state')
+        .upsert({ key: 'manual_products_catalog', value: currentManual });
+
+      if (error) throw error;
+      
+      // Update local state
+      setData(prev => ({ ...prev, manual_products_catalog: currentManual }));
+    } catch (err) {
+      console.error('Error deleting product:', err);
       throw err;
     }
   };
@@ -208,7 +230,7 @@ export function DataProvider({ children, initialData }: { children: ReactNode; i
         if (excelProduct) {
           // If editing an Excel product for the first time, add it to manual catalog as an override
           const newProduct = { ...excelProduct, ...updates };
-          newManual = [...currentManual, newProduct];
+          newManual = [newProduct, ...currentManual];
         } else {
           throw new Error('Produto não encontrado');
         }
@@ -229,7 +251,7 @@ export function DataProvider({ children, initialData }: { children: ReactNode; i
   const refreshPurchases = fetchPurchases;
 
   return (
-    <DataContext.Provider value={{ data, setData, isLoading, setIsLoading, addPurchase, addProduct, addCustomer, addSale, updateProduct, refreshPurchases }}>
+    <DataContext.Provider value={{ data, setData, isLoading, setIsLoading, addPurchase, addProduct, deleteProduct, addCustomer, addSale, updateProduct, refreshPurchases }}>
       {children}
     </DataContext.Provider>
   );

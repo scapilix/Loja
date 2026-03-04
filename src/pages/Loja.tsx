@@ -168,7 +168,7 @@ function LojaContent() {
                     type="text" 
                     value={customerName}
                     onChange={(e) => setCustomerName(e.target.value)}
-                    className="w-full px-0 py-4 bg-transparent border-b-2 border-slate-100 dark:border-white/10 focus:border-[#827b14] outline-none transition-all font-bold text-xl uppercase tracking-tight"
+                    className="w-full px-0 py-4 bg-transparent border-b-2 border-slate-100 dark:border-white/10 focus:border-[#827b14] outline-none transition-all font-bold text-xl uppercase tracking-tight text-slate-950 dark:text-white placeholder:text-slate-200"
                   />
                 </div>
                 <div className="space-y-2">
@@ -177,7 +177,7 @@ function LojaContent() {
                     type="text" 
                     value={customerInsta}
                     onChange={(e) => setCustomerInsta(e.target.value)}
-                    className="w-full px-0 py-4 bg-transparent border-b-2 border-slate-100 dark:border-white/10 focus:border-[#827b14] outline-none transition-all font-bold text-xl uppercase tracking-tight"
+                    className="w-full px-0 py-4 bg-transparent border-b-2 border-slate-100 dark:border-white/10 focus:border-[#827b14] outline-none transition-all font-bold text-xl uppercase tracking-tight text-slate-950 dark:text-white placeholder:text-slate-200"
                   />
                 </div>
                 <div className="space-y-2">
@@ -187,7 +187,7 @@ function LojaContent() {
                     type="text" 
                     value={customerAddress}
                     onChange={(e) => setCustomerAddress(e.target.value)}
-                    className="w-full px-0 py-4 bg-transparent border-b-2 border-slate-100 dark:border-white/10 focus:border-[#827b14] outline-none transition-all font-bold text-xl uppercase tracking-tight"
+                    className="w-full px-0 py-4 bg-transparent border-b-2 border-slate-100 dark:border-white/10 focus:border-[#827b14] outline-none transition-all font-bold text-xl uppercase tracking-tight text-slate-950 dark:text-white placeholder:text-slate-200"
                   />
                 </div>
               </div>
