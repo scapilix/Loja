@@ -186,6 +186,10 @@ export default function Faturas() {
         // Upload to Supabase first
         const fileUrl = await uploadToSupabase(file, 'faturas');
         
+        if (!fileUrl) {
+             throw new Error("Erro ao fazer upload do ficheiro para a nuvem.");
+        }
+
         if (fileUrl) {
             setFormData(prev => ({
                 ...prev,
@@ -196,31 +200,36 @@ export default function Faturas() {
         // Only run OCR for Faturas
         if (type === 'fatura') {
             setIsScanning(true);
-            const data = await scanReceipt(file);
-            
-            if (data) {
-                 setFormData(prev => {
-                    const total = typeof data.total === 'number' ? data.total : prev.valor_total;
-                    const rate = 23; // Default to 23% or try to infer?
-                    const { semIva, iva } = calculateIva(total, rate);
+            try {
+                const data = await scanReceipt(file);
+                
+                if (data) {
+                     setFormData(prev => {
+                        const total = typeof data.total === 'number' ? data.total : prev.valor_total;
+                        const rate = 23; // Default to 23% or try to infer?
+                        const { semIva, iva } = calculateIva(total, rate);
 
-                    return {
-                        ...prev,
-                        data: data.data || prev.data,
-                        entidade: data.entidade || data.descricao || prev.entidade,
-                        nif: data.nif || prev.nif,
-                        numero_fatura: data.numero_fatura || prev.numero_fatura,
-                        valor_total: total,
-                        valor_sem_iva: typeof data.valor_sem_iva === 'number' ? data.valor_sem_iva : semIva,
-                        valor_iva: typeof data.valor_iva === 'number' ? data.valor_iva : iva,
-                        categoria: (data.categoria && CATEGORIES.includes(data.categoria)) ? data.categoria : prev.categoria,
-                        tipo_fatura: (data.tipo_fatura && INVOICE_TYPES.includes(data.tipo_fatura)) ? data.tipo_fatura : prev.tipo_fatura
-                    };
-                 });
+                        return {
+                            ...prev,
+                            data: data.data || prev.data,
+                            entidade: data.entidade || data.descricao || prev.entidade,
+                            nif: data.nif || prev.nif,
+                            numero_fatura: data.numero_fatura || prev.numero_fatura,
+                            valor_total: total,
+                            valor_sem_iva: typeof data.valor_sem_iva === 'number' ? data.valor_sem_iva : semIva,
+                            valor_iva: typeof data.valor_iva === 'number' ? data.valor_iva : iva,
+                            categoria: (data.categoria && CATEGORIES.includes(data.categoria)) ? data.categoria : prev.categoria,
+                            tipo_fatura: (data.tipo_fatura && INVOICE_TYPES.includes(data.tipo_fatura)) ? data.tipo_fatura : prev.tipo_fatura
+                        };
+                     });
+                }
+            } catch (ocrError) {
+                console.warn("Aviso: Leitura automática da fatura (OCR) falhou.", ocrError);
+                // We do not throw an error here, since the file upload was successful.
             }
         }
-    } catch (error) {
-        alert("Erro ao processar ficheiro. Verifica a licença/conexão.");
+    } catch (error: any) {
+        alert(error.message || "Erro ao processar ficheiro. Verifica a licença/conexão.");
         console.error(error);
     } finally {
         if (type === 'fatura') setUploadingFatura(false);

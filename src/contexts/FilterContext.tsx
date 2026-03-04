@@ -4,6 +4,12 @@ interface DashboardFilters {
   year: string;
   month: string;
   days: string[];
+  payment: string;
+  weekday: string;
+  monthYear: string;
+  instagram: string;
+  canal: string;
+  envio: string;
 }
 
 interface FilterContextType {
@@ -17,7 +23,13 @@ export function FilterProvider({ children }: { children: ReactNode }) {
   const [filters, setFilters] = useState<DashboardFilters>({
     year: '',
     month: '',
-    days: []
+    days: [],
+    payment: '',
+    weekday: '',
+    monthYear: '',
+    instagram: '',
+    canal: '',
+    envio: ''
   });
 
   return (

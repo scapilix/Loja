@@ -11,6 +11,9 @@ import Portes from '../pages/Portes';
 import Faturas from '../pages/Faturas';
 import Despesas from '../pages/Despesas';
 import Emprestimos from '../pages/Emprestimos';
+import CadastroVendas from '../pages/CadastroVendas';
+import Encomendas from '../pages/Encomendas';
+import Loja from '../pages/Loja';
 
 import Login from '../pages/Login';
 import { FilterProvider } from '../contexts/FilterContext';
@@ -39,6 +42,7 @@ function AppRoutes() {
           <FilterProvider>
             <Routes>
               <Route path="/login" element={<Login />} />
+              <Route path="/loja" element={<Loja />} />
               <Route path="/" element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>
                 <Route index element={<Overview />} />
                 <Route path="clientes" element={<Clientes />} />
@@ -52,6 +56,8 @@ function AppRoutes() {
                 <Route path="faturas" element={<Faturas />} />
                 <Route path="despesas" element={<Despesas />} />
                 <Route path="emprestimos" element={<Emprestimos />} />
+                <Route path="cadastro-vendas" element={<CadastroVendas />} />
+                <Route path="encomendas" element={<Encomendas />} />
                 <Route path="*" element={<Navigate to="/" replace />} />
               </Route>
             </Routes>

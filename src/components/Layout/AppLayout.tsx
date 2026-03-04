@@ -18,7 +18,10 @@ import {
   KeyRound,
   FileText,
   Wallet,
-  Banknote
+  Banknote,
+  PlusCircle,
+  ClipboardList,
+  ShoppingBag
 } from 'lucide-react';
 import { ThemeToggle } from '../ThemeToggle';
 import { ExcelImport } from '../ExcelImport';
@@ -26,12 +29,15 @@ import { useData } from '../../contexts/DataContext';
 import { useAuth } from '../../contexts/AuthContext';
 
 const navigation = [
+  { id: 'loja', label: 'E-commerce Loja', icon: ShoppingBag, path: '/loja' },
   { id: 'overview', label: 'Overview', icon: LayoutDashboard, path: '/' },
   { id: 'clientes', label: 'Análise Clientes', icon: Users, path: '/clientes' },
   { id: 'base-clientes', label: 'Base Clientes', icon: Database, path: '/base-clientes' },
   { id: 'base-itens', label: 'Base de Itens', icon: Tag, path: '/base-itens' },
 
   { id: 'stock-manager', label: 'Gestão de Stock', icon: Box, path: '/stock-manager' },
+  { id: 'cadastro-vendas', label: 'Cadastro de Vendas', icon: PlusCircle, path: '/cadastro-vendas' },
+  { id: 'encomendas', label: 'Encomendas', icon: ClipboardList, path: '/encomendas' },
   { id: 'produtos', label: 'Produtos', icon: Package, path: '/produtos' },
   { id: 'rankings', label: 'Rankings', icon: Trophy, path: '/rankings' },
   { id: 'portes', label: 'Portes', icon: Truck, path: '/portes' },

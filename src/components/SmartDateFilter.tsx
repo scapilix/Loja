@@ -5,7 +5,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 interface FilterState {
   year: string;
   month: string;
-  days: string[]; // Changed from day to days for multi-selection
+  days: string[];
+  [key: string]: any;
 }
 
 interface SmartDateFilterProps {

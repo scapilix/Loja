@@ -8,6 +8,8 @@ interface ProductCatalogItem {
   iva: number;
   lucro_meu_faturado: number;
   fornecedor: string;
+  image_url?: string;
+  description?: string;
 }
 
 interface ExcelData {
@@ -49,6 +51,8 @@ interface DataContextType {
   setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
   addPurchase: (purchase: Omit<Purchase, 'id' | 'created_at'>) => Promise<void>;
   addProduct: (product: ProductCatalogItem) => Promise<void>;
+  addCustomer: (customer: any) => Promise<void>;
+  addSale: (sale: any) => Promise<void>;
   refreshPurchases: () => Promise<void>;
 }
 
@@ -149,10 +153,47 @@ export function DataProvider({ children, initialData }: { children: ReactNode; i
     }
   };
 
+  const addCustomer = async (customer: any) => {
+    try {
+      const currentCustomers = data.customers || [];
+      const newCustomers = [customer, ...currentCustomers];
+      
+      const { error } = await supabase
+        .from('loja_app_state')
+        .upsert({ key: 'import_customers', value: newCustomers });
+
+      if (error) throw error;
+      setData(prev => ({ ...prev, customers: newCustomers }));
+    } catch (err) {
+      console.error('Error adding customer:', err);
+      throw err;
+    }
+  };
+
+  const addSale = async (sale: any) => {
+    try {
+      const currentOrders = data.orders || [];
+      const newOrders = [sale, ...currentOrders];
+      
+      // Persist to Supabase State
+      const { error } = await supabase
+        .from('loja_app_state')
+        .upsert({ key: 'import_orders', value: newOrders });
+
+      if (error) throw error;
+      
+      // Update local state
+      setData(prev => ({ ...prev, orders: newOrders }));
+    } catch (err) {
+      console.error('Error adding sale:', err);
+      throw err;
+    }
+  };
+
   const refreshPurchases = fetchPurchases;
 
   return (
-    <DataContext.Provider value={{ data, setData, isLoading, setIsLoading, addPurchase, addProduct, refreshPurchases }}>
+    <DataContext.Provider value={{ data, setData, isLoading, setIsLoading, addPurchase, addProduct, addCustomer, addSale, refreshPurchases }}>
       {children}
     </DataContext.Provider>
   );

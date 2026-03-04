@@ -1,5 +1,5 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&display=swap");
 
 @tailwind base;
 @tailwind components;
@@ -8,10 +8,10 @@
 @layer base {
   :root {
     /* Brand Colors */
-    --color-primary-400: 239 68% 68%;  /* Electric Blue */
-    --color-primary-500: 271 91% 65%;  /* Purple */
-    --color-primary-600: 263 70% 50%;  /* Indigo */
-    
+    --color-primary-400: 239 68% 68%; /* Electric Blue */
+    --color-primary-500: 271 91% 65%; /* Purple */
+    --color-primary-600: 263 70% 50%; /* Indigo */
+
     /* Data Visualization */
     --color-success-400: 167 80% 55%;
     --color-success-500: 160 84% 39%;
@@ -21,7 +21,7 @@
     --color-danger-500: 0 72% 51%;
     --color-info-400: 213 94% 68%;
     --color-info-500: 217 91% 60%;
-    
+
     /* Neutrals - Light Mode */
     --background: 270 100% 99%;
     --foreground: 222 47% 11%;
@@ -30,7 +30,7 @@
     --muted: 215 20% 65%;
     --muted-foreground: 215 16% 47%;
     --border: 271 40% 85%;
-    
+
     /* Design Tokens */
     --blur-glass: 24px;
     --spacing-section: 3.5rem;
@@ -51,27 +51,40 @@
 
 body {
   @apply bg-[#fdfaff] text-slate-900 transition-colors duration-500 selection:bg-purple-500/30;
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-family:
+    "Inter",
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
   font-weight: 500;
   -webkit-font-smoothing: antialiased;
-  font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+  font-feature-settings: "cv02", "cv03", "cv04", "cv11";
 }
 
-h1, h2, h3, h4, .font-heading {
-  font-family: 'Inter', sans-serif;
+h1,
+h2,
+h3,
+h4,
+.font-heading {
+  font-family: "Inter", sans-serif;
   font-weight: 700;
   letter-spacing: -0.02em;
 }
 
 .font-mono {
-  font-family: 'JetBrains Mono', monospace;
+  font-family: "JetBrains Mono", monospace;
 }
 
 .dark body {
   @apply bg-[#08040d] text-slate-50;
-  background-image: 
+  background-image:
     radial-gradient(at 0% 0%, hsla(271, 91%, 65%, 0.05) 0px, transparent 50%),
-    radial-gradient(at 100% 100%, hsla(263, 70%, 50%, 0.03) 0px, transparent 50%),
+    radial-gradient(
+      at 100% 100%,
+      hsla(263, 70%, 50%, 0.03) 0px,
+      transparent 50%
+    ),
     url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
   background-attachment: fixed;
 }
@@ -80,7 +93,7 @@ h1, h2, h3, h4, .font-heading {
 .glass {
   @apply bg-white/95 backdrop-blur-2xl border border-slate-300 shadow-xl;
 }
- 
+
 .dark .glass {
   @apply bg-slate-900/60 backdrop-blur-2xl border border-white/20 shadow-2xl;
 }
@@ -113,4 +126,17 @@ h1, h2, h3, h4, .font-heading {
 
 ::-webkit-scrollbar-thumb {
   @apply bg-purple-600/20 rounded-full hover:bg-purple-600/40 transition-colors;
+}
+
+@keyframes slow-zoom {
+  0% {
+    transform: scale(1);
+  }
+  100% {
+    transform: scale(1.1);
+  }
+}
+
+.animate-slow-zoom {
+  animation: slow-zoom 20s linear infinite alternate;
 }
