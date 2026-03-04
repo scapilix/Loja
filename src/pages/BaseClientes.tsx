@@ -96,7 +96,7 @@ export default function BaseClientes() {
 
         {isFiltered && (
           <button 
-            onClick={() => setFilters({ year: '', month: '', days: [] })}
+            onClick={() => setFilters(prev => ({ ...prev, year: '', month: '', days: [] }))}
             className="ml-auto flex items-center gap-1 px-3 py-1.5 bg-rose-50 dark:bg-rose-500/10 text-rose-600 dark:text-rose-400 hover:bg-rose-500 hover:text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-all duration-300"
           >
             <X className="w-3 h-3" />

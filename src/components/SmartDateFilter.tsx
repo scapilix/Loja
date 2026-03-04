@@ -9,9 +9,9 @@ interface FilterState {
   [key: string]: any;
 }
 
-interface SmartDateFilterProps {
-  filters: FilterState;
-  setFilters: React.Dispatch<React.SetStateAction<FilterState>>;
+interface SmartDateFilterProps<T extends FilterState> {
+  filters: T;
+  setFilters: React.Dispatch<React.SetStateAction<T>>;
   availableFilters: {
     years: string[];
     months: string[];
@@ -25,7 +25,13 @@ interface SmartDateFilterProps {
   itemLabel?: string;
 }
 
-export const SmartDateFilter: React.FC<SmartDateFilterProps> = ({ filters, setFilters, availableFilters, counts, itemLabel = 'Vendas' }) => {
+export const SmartDateFilter = <T extends FilterState>({ 
+  filters, 
+  setFilters, 
+  availableFilters, 
+  counts, 
+  itemLabel = 'Vendas' 
+}: SmartDateFilterProps<T>) => {
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -81,7 +87,7 @@ export const SmartDateFilter: React.FC<SmartDateFilterProps> = ({ filters, setFi
 
   const clearFilters = (e: React.MouseEvent) => {
     e.stopPropagation();
-    setFilters({ year: '', month: '', days: [] });
+    setFilters(prev => ({ ...prev, year: '', month: '', days: [] }));
     setIsOpen(false);
   };
 
