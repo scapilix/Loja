@@ -19,6 +19,7 @@ import { useCart, CartProvider } from '../contexts/CartContext';
 import { ProductCard } from '../components/Loja/ProductCard';
 import { Cart } from '../components/Loja/Cart';
 import { ImageZoomModal } from '../components/Loja/ImageZoomModal';
+import { supabase } from '../lib/supabase';
 
 function LojaContent() {
   const { data, addSale } = useData();
@@ -26,6 +27,8 @@ function LojaContent() {
   
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [genderFilter, setGenderFilter] = useState<string | null>(null);
+  const [sortBy, setSortBy] = useState('');
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [zoomedProduct, setZoomedProduct] = useState<any>(null);
   const [checkoutStep, setCheckoutStep] = useState<'browsing' | 'checkout' | 'success'>('browsing');
@@ -35,15 +38,64 @@ function LojaContent() {
   const [customerName, setCustomerName] = useState('');
   const [customerInsta, setCustomerInsta] = useState('');
   const [customerAddress, setCustomerAddress] = useState('');
+
+  // Newsletter State
+  const [newsletterEmail, setNewsletterEmail] = useState('');
+  const [newsletterSuccess, setNewsletterSuccess] = useState(false);
   
   const productsSectionRef = useRef<HTMLDivElement>(null);
   
+  const scrollToProducts = () => {
+    productsSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+
   const handleCategoryChange = (category: string | null) => {
     setSelectedCategory(category);
-    // Smooth scroll to objects section
-    if (productsSectionRef.current) {
-      productsSectionRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    setGenderFilter(null);
+    scrollToProducts();
+  };
+
+  const handleNavFilter = (gender: string | null) => {
+    setGenderFilter(gender);
+    setSelectedCategory(null);
+    scrollToProducts();
+  };
+
+  const handleNovidadesFilter = () => {
+    // Show manually-added products (new arrivals added by the store admin)
+    setGenderFilter(null);
+    setSelectedCategory('__novidades__');
+    scrollToProducts();
+  };
+
+  const handleNewsletter = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      const { data: stateRow } = await supabase
+        .from('loja_app_state')
+        .select('value')
+        .eq('key', 'newsletter_subscribers')
+        .single();
+
+      const existing: string[] = stateRow?.value ?? [];
+      if (!existing.includes(newsletterEmail)) {
+        await supabase
+          .from('loja_app_state')
+          .upsert({ key: 'newsletter_subscribers', value: [...existing, newsletterEmail] });
+      }
+    } catch {
+      // Silently handle errors — the success UX still shows
     }
+    setNewsletterSuccess(true);
+    setNewsletterEmail('');
+    setTimeout(() => setNewsletterSuccess(false), 5000);
+  };
+
+  const resetAllFilters = () => {
+    setSearchTerm('');
+    setSelectedCategory(null);
+    setGenderFilter(null);
+    setSortBy('');
   };
   
   // Responsive Hero Dimensions
@@ -103,8 +155,20 @@ function LojaContent() {
   const filteredProducts = useMemo(() => {
     let filtered = allProducts;
     
-    if (selectedCategory) {
+    if (selectedCategory === '__novidades__') {
+      // Show only manually-added products (new arrivals)
+      const manualRefs = new Set((data.manual_products_catalog || []).map(p => p.ref));
+      filtered = filtered.filter(p => manualRefs.has(p.ref));
+    } else if (selectedCategory) {
       filtered = filtered.filter(p => p.categoria === selectedCategory);
+    }
+
+    if (genderFilter) {
+      const gf = genderFilter.toLowerCase();
+      filtered = filtered.filter(p =>
+        p.categoria?.toLowerCase().includes(gf) ||
+        p.nome_artigo?.toLowerCase().includes(gf)
+      );
     }
     
     if (searchTerm.trim()) {
@@ -114,9 +178,18 @@ function LojaContent() {
         (p.nome_artigo && p.nome_artigo.toLowerCase().includes(term))
       );
     }
+
+    const sorted = [...filtered];
+    if (sortBy === 'price-asc') {
+      sorted.sort((a, b) => (a.pvp_cica || 0) - (b.pvp_cica || 0));
+    } else if (sortBy === 'price-desc') {
+      sorted.sort((a, b) => (b.pvp_cica || 0) - (a.pvp_cica || 0));
+    } else if (sortBy === 'az') {
+      sorted.sort((a, b) => (a.nome_artigo || '').localeCompare(b.nome_artigo || '', 'pt'));
+    }
     
-    return filtered;
-  }, [allProducts, searchTerm, selectedCategory]);
+    return sorted;
+  }, [allProducts, searchTerm, selectedCategory, genderFilter, sortBy, data.manual_products_catalog]);
 
   const handleCheckout = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -289,14 +362,14 @@ function LojaContent() {
           <nav className="hidden lg:flex items-center gap-12 text-[10px] font-black uppercase tracking-[0.25em] text-slate-400">
              <button 
                onClick={() => handleCategoryChange(null)}
-               className={`hover:text-black dark:hover:text-white transition-colors border-b-2 pb-1 ${!selectedCategory ? 'text-black dark:text-white border-[#827b14]' : 'border-transparent'}`}
+               className={`hover:text-black dark:hover:text-white transition-colors border-b-2 pb-1 ${!selectedCategory && !genderFilter ? 'text-black dark:text-white border-[#827b14]' : 'border-transparent'}`}
              >
                Ver Tudo
              </button>
              
              {/* Dynamic Categorias Dropdown */}
              <div className="relative group py-8">
-               <button className={`flex items-center gap-2 hover:text-black dark:hover:text-white transition-colors border-b-2 pb-1 ${selectedCategory ? 'text-black dark:text-white border-[#827b14]' : 'border-transparent'}`}>
+               <button className={`flex items-center gap-2 hover:text-black dark:hover:text-white transition-colors border-b-2 pb-1 ${selectedCategory && selectedCategory !== '__novidades__' ? 'text-black dark:text-white border-[#827b14]' : 'border-transparent'}`}>
                  Roupas
                </button>
                
@@ -323,9 +396,18 @@ function LojaContent() {
                </div>
              </div>
 
-             <a href="#" className="hover:text-black dark:hover:text-white transition-colors border-b-2 border-transparent hover:border-[#827b14] pb-1">Homem</a>
-             <a href="#" className="hover:text-black dark:hover:text-white transition-colors border-b-2 border-transparent hover:border-[#827b14] pb-1">Mulher</a>
-             <a href="#" className="hover:text-black dark:hover:text-white transition-colors border-b-2 border-transparent hover:border-[#827b14] pb-1">Novidades</a>
+             <button 
+               onClick={() => handleNavFilter('homem')}
+               className={`hover:text-black dark:hover:text-white transition-colors border-b-2 pb-1 ${genderFilter === 'homem' ? 'text-black dark:text-white border-[#827b14]' : 'border-transparent'}`}
+             >Homem</button>
+             <button 
+               onClick={() => handleNavFilter('mulher')}
+               className={`hover:text-black dark:hover:text-white transition-colors border-b-2 pb-1 ${genderFilter === 'mulher' ? 'text-black dark:text-white border-[#827b14]' : 'border-transparent'}`}
+             >Mulher</button>
+             <button 
+               onClick={handleNovidadesFilter}
+               className={`hover:text-black dark:hover:text-white transition-colors border-b-2 pb-1 ${selectedCategory === '__novidades__' ? 'text-black dark:text-white border-[#827b14]' : 'border-transparent'}`}
+             >Novidades</button>
           </nav>
 
           <div className="flex items-center gap-8">
@@ -371,10 +453,14 @@ function LojaContent() {
           />
           <div className="absolute inset-0 z-20 flex flex-col items-center justify-center text-center p-6 bg-gradient-to-b from-transparent via-transparent to-black/60 pointer-events-none">
             <div className="flex flex-col sm:flex-row items-center justify-center gap-6 pt-12 pointer-events-auto mt-auto mb-20">
-              <button className="px-14 py-6 bg-white text-black font-black uppercase tracking-[0.4em] text-[10px] shadow-2xl hover:bg-[#827b14] hover:text-white transition-all transform hover:-translate-y-1">
+              <button 
+                onClick={scrollToProducts}
+                className="px-14 py-6 bg-white text-black font-black uppercase tracking-[0.4em] text-[10px] shadow-2xl hover:bg-[#827b14] hover:text-white transition-all transform hover:-translate-y-1">
                 Shop Now
               </button>
-              <button className="px-14 py-6 bg-transparent border-2 border-white/20 text-white font-black uppercase tracking-[0.4em] text-[10px] backdrop-blur-md hover:bg-white hover:text-black transition-all transform hover:-translate-y-1">
+              <button 
+                onClick={scrollToProducts}
+                className="px-14 py-6 bg-transparent border-2 border-white/20 text-white font-black uppercase tracking-[0.4em] text-[10px] backdrop-blur-md hover:bg-white hover:text-black transition-all transform hover:-translate-y-1">
                 Collection
               </button>
             </div>
@@ -406,12 +492,15 @@ function LojaContent() {
                  </div>
                  <div className="flex items-center gap-3 shrink-0 cursor-pointer group">
                     <Filter className="w-3.5 h-3.5 text-slate-300 group-hover:text-[#827b14] transition-colors" />
-                    <select className="bg-transparent border-none text-[10px] font-black uppercase tracking-[0.2em] text-black dark:text-white outline-none appearance-none cursor-pointer">
-                       <option>FILTRAR POR</option>
-                       <option>PREÇO: BAIXO-ALTO</option>
-                       <option>PREÇO: ALTO-BAIXO</option>
-                       <option>MAIS RECENTES</option>
-                    </select>
+                    <select 
+                       value={sortBy}
+                       onChange={(e) => setSortBy(e.target.value)}
+                       className="bg-transparent border-none text-[10px] font-black uppercase tracking-[0.2em] text-black dark:text-white outline-none appearance-none cursor-pointer">
+                        <option value="">FILTRAR POR</option>
+                        <option value="price-asc">PREÇO: BAIXO-ALTO</option>
+                        <option value="price-desc">PREÇO: ALTO-BAIXO</option>
+                        <option value="az">A-Z</option>
+                     </select>
                  </div>
               </div>
            </div>
@@ -438,7 +527,7 @@ function LojaContent() {
                    <p className="text-[#827b14] text-[9px] font-black uppercase tracking-[0.3em]">TENTE READEQUAR A SUA PESQUISA</p>
                 </div>
                 <button 
-                  onClick={() => setSearchTerm('')}
+                  onClick={resetAllFilters}
                   className="px-12 py-4 bg-black text-white dark:bg-white dark:text-black text-[10px] font-black uppercase tracking-[0.2em] hover:bg-[#827b14] transition-all"
                 >
                   VER TUDO
@@ -482,14 +571,27 @@ function LojaContent() {
 
             <div className="space-y-8">
                <h5 className="text-[10px] font-black uppercase tracking-[0.3em] text-[#827b14]">NEWSLETTER</h5>
-               <div className="relative group">
-                  <input 
-                    type="email" 
-                    placeholder="O SEU EMAIL..."
-                    className="w-full bg-transparent border-b-2 border-slate-200 dark:border-white/10 py-4 font-black uppercase tracking-[0.2em] text-[10px] focus:border-[#827b14] outline-none transition-all"
-                  />
-                  <button className="absolute right-0 bottom-4 text-[10px] font-black uppercase tracking-[0.3em] hover:text-[#827b14] transition-colors">OK</button>
-               </div>
+               {newsletterSuccess ? (
+                 <motion.p
+                   initial={{ opacity: 0 }}
+                   animate={{ opacity: 1 }}
+                   className="text-[10px] font-black uppercase tracking-[0.2em] text-emerald-500"
+                 >
+                   SUBSCRITO COM SUCESSO!
+                 </motion.p>
+               ) : (
+                 <form onSubmit={handleNewsletter} className="relative group">
+                   <input 
+                     type="email"
+                     required
+                     placeholder="O SEU EMAIL..."
+                     value={newsletterEmail}
+                     onChange={(e) => setNewsletterEmail(e.target.value)}
+                     className="w-full bg-transparent border-b-2 border-slate-200 dark:border-white/10 py-4 font-black uppercase tracking-[0.2em] text-[10px] focus:border-[#827b14] outline-none transition-all"
+                   />
+                   <button type="submit" className="absolute right-0 bottom-4 text-[10px] font-black uppercase tracking-[0.3em] hover:text-[#827b14] transition-colors">OK</button>
+                 </form>
+               )}
             </div>
          </div>
          <div className="mt-24 pt-10 border-t border-slate-200 dark:border-white/10 text-center">
